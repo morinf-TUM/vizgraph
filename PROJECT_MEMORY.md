@@ -93,6 +93,10 @@ Pure functions in `document`, `registry`, `serializer`, `validator`, `compiler` 
 - git available.
 - No CI yet.
 
+## Contributor identity
+
+All commits in this project use the **morinf-TUM** identity (configured project-locally — not globally). Any agent or session must verify `git config user.name` / `git config user.email` resolve to morinf-TUM before committing. Existing pre-rule commits under another local-machine identity remain as-is and must not be rewritten.
+
 ## Open questions
 
 Carried in `docs/specs/2026-05-01-n8n-port-editor-design.md` §17. None block Phase 1.

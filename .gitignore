@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+.vite/
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+.vitest-cache/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Lockfiles for non-pnpm package managers (pnpm-lock.yaml is committed)
+package-lock.json
+yarn.lock

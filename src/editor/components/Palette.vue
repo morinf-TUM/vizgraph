@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { defaultRegistry } from "../../registry/registry";
 import { useCanvasOperations } from "../composables/useCanvasOperations";
 
 const registry = defaultRegistry();
 const ops = useCanvasOperations();
+
+const search = ref("");
 
 interface Group {
   category: string;
@@ -12,8 +14,15 @@ interface Group {
 }
 
 const groups = computed<Group[]>(() => {
+  const q = search.value.trim().toLowerCase();
   const byCategory = new Map<string, Group>();
   for (const desc of registry.all()) {
+    const matches =
+      q === "" ||
+      desc.type.toLowerCase().includes(q) ||
+      desc.display_name.toLowerCase().includes(q) ||
+      desc.category.toLowerCase().includes(q);
+    if (!matches) continue;
     let g = byCategory.get(desc.category);
     if (!g) {
       g = { category: desc.category, items: [] };
@@ -25,8 +34,6 @@ const groups = computed<Group[]>(() => {
 });
 
 const onAdd = (type: string): void => {
-  // Drop a new node at a fixed canvas-friendly position; the user can then
-  // drag it. Phase 3 may swap this for cursor-relative placement.
   ops.addNodeAt(type, { x: 60, y: 60 });
 };
 </script>
@@ -34,6 +41,14 @@ const onAdd = (type: string): void => {
 <template>
   <div class="palette" data-testid="palette">
     <h2 class="palette__title">Nodes</h2>
+    <input
+      v-model="search"
+      type="search"
+      placeholder="Search…"
+      class="palette__search"
+      data-testid="palette-search"
+    />
+    <div v-if="groups.length === 0" class="palette__empty">No matches.</div>
     <div v-for="group in groups" :key="group.category" class="palette__group">
       <h3 class="palette__category">{{ group.category }}</h3>
       <button
@@ -58,6 +73,19 @@ const onAdd = (type: string): void => {
   color: #374151;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+.palette__search {
+  width: 100%;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+}
+.palette__empty {
+  color: #6b7280;
+  font-size: 11px;
+  margin: 6px 0;
 }
 .palette__category {
   font-size: 10px;

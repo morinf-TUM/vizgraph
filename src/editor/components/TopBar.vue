@@ -2,11 +2,15 @@
 import { ref } from "vue";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
+import { useHistoryStore } from "../stores/historyStore";
 import { useFileIO } from "../composables/useFileIO";
+import { useAutoLayout } from "../composables/useAutoLayout";
 
 const docStore = useDocumentStore();
 const editorStore = useEditorStore();
+const history = useHistoryStore();
 const fileIO = useFileIO();
+const autoLayout = useAutoLayout();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const error = ref<string | null>(null);
@@ -15,6 +19,7 @@ const onNew = (): void => {
   docStore.newDocument();
   editorStore.clearSelection();
   editorStore.markClean();
+  history.clear();
   error.value = null;
 };
 
@@ -46,6 +51,16 @@ const onSaveAs = (): void => {
   fileIO.save(name);
   error.value = null;
 };
+
+const onUndo = (): void => {
+  history.undo();
+};
+const onRedo = (): void => {
+  history.redo();
+};
+const onTidy = (): void => {
+  autoLayout.tidy();
+};
 </script>
 
 <template>
@@ -59,6 +74,15 @@ const onSaveAs = (): void => {
       <button type="button" data-testid="topbar-open" @click="onOpen">Open</button>
       <button type="button" data-testid="topbar-save" @click="onSave">Save</button>
       <button type="button" data-testid="topbar-saveas" @click="onSaveAs">Save As</button>
+      <span class="top-bar__sep" />
+      <button type="button" data-testid="topbar-undo" :disabled="!history.canUndo" @click="onUndo">
+        Undo
+      </button>
+      <button type="button" data-testid="topbar-redo" :disabled="!history.canRedo" @click="onRedo">
+        Redo
+      </button>
+      <span class="top-bar__sep" />
+      <button type="button" data-testid="topbar-tidy" @click="onTidy">Tidy</button>
       <input
         ref="fileInput"
         type="file"
@@ -94,6 +118,13 @@ const onSaveAs = (): void => {
 .top-bar__actions {
   display: flex;
   gap: 6px;
+  align-items: center;
+}
+.top-bar__sep {
+  width: 1px;
+  height: 18px;
+  background: #d0d7de;
+  margin: 0 4px;
 }
 .top-bar__actions button {
   padding: 4px 10px;
@@ -103,7 +134,11 @@ const onSaveAs = (): void => {
   background: #fff;
   cursor: pointer;
 }
-.top-bar__actions button:hover {
+.top-bar__actions button:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+.top-bar__actions button:not(:disabled):hover {
   background: #f1f5f9;
 }
 .top-bar__file-input {

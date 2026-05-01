@@ -1,5 +1,6 @@
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
+import { useHistoryStore } from "../stores/historyStore";
 import { saveVersioned } from "../../serializer/versioned";
 import { loadGraph } from "../../serializer/index";
 import { GraphDocumentSchema } from "../../document/types";
@@ -7,6 +8,7 @@ import { GraphDocumentSchema } from "../../document/types";
 export const useFileIO = () => {
   const docStore = useDocumentStore();
   const editorStore = useEditorStore();
+  const history = useHistoryStore();
 
   const save = (filename = "graph.json"): void => {
     const json = saveVersioned(docStore.doc);
@@ -49,6 +51,7 @@ export const useFileIO = () => {
     docStore.replaceDocument(fresh.data);
     editorStore.clearSelection();
     editorStore.markClean();
+    history.clear();
     return { ok: true };
   };
 

@@ -3,6 +3,12 @@ import TopBar from "./editor/components/TopBar.vue";
 import Palette from "./editor/components/Palette.vue";
 import CanvasView from "./editor/components/CanvasView.vue";
 import PropertyPanel from "./editor/components/PropertyPanel.vue";
+import ValidationPanel from "./editor/components/ValidationPanel.vue";
+import { useLiveValidation } from "./editor/composables/useLiveValidation";
+import { useShortcuts } from "./editor/composables/useShortcuts";
+
+useLiveValidation();
+useShortcuts();
 </script>
 
 <template>
@@ -12,8 +18,11 @@ import PropertyPanel from "./editor/components/PropertyPanel.vue";
       <aside class="editor-shell__palette">
         <Palette />
       </aside>
-      <section class="editor-shell__canvas">
-        <CanvasView />
+      <section class="editor-shell__centre">
+        <div class="editor-shell__canvas">
+          <CanvasView />
+        </div>
+        <ValidationPanel />
       </section>
       <aside class="editor-shell__properties">
         <PropertyPanel />
@@ -43,6 +52,11 @@ import PropertyPanel from "./editor/components/PropertyPanel.vue";
 .editor-shell__properties {
   border-right: none;
   border-left: 1px solid var(--el-border-color-light, #eee);
+}
+.editor-shell__centre {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 0;
 }
 .editor-shell__canvas {
   position: relative;

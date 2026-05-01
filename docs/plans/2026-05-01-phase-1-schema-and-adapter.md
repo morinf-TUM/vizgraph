@@ -6,7 +6,7 @@
 
 **Architecture:** Pure TypeScript modules with zero Vue/store dependencies in this phase. One Zod schema per data type; TS types derive from schemas via `z.infer`. Validator returns `Diagnostic[]` from a pure function. Versioned + legacy JSON formats both round-trip through the same `GraphDocument`.
 
-**Tech Stack:** TypeScript ≥6 strict, Vitest ≥4, Zod ≥4, pnpm 10 via corepack, Node 22 LTS. ESLint + Prettier. GitHub Actions CI. (Versions verified 2026-05-01: zod 4.4.1, vitest 4.1.5, typescript 6.0.3, pnpm 10.33.2 — all `latest` on npm. Pin via lockfile after install; do not pin in `package.json`.)
+**Tech Stack:** TypeScript ~6.0 strict, Vitest ^4, Zod ^4, pnpm 10 via corepack, Node 22 LTS. ESLint ^10 (flat config) + typescript-eslint ^8.59 + Prettier ^3. GitHub Actions CI. (Versions and peer ranges verified 2026-05-01 against npm: zod 4.4.1, vitest 4.1.5, typescript 6.0.3, eslint 10.2.1, typescript-eslint 8.59.1 with peer range `typescript >=4.8.4 <6.1.0` — TypeScript pinned at `~6.0` to honor that ceiling; @eslint/js 10.0.1; @vitest/coverage-v8 4.1.5 — must match vitest exactly. Pin via lockfile after install.)
 
 **Identity:** all commits in this project use the project-local git identity `morinf-TUM <45066770+morinf-TUM@users.noreply.github.com>`. Verify with `git config user.name && git config user.email` before any commit.
 
@@ -42,7 +42,7 @@ pnpm-lock.yaml                                Task 1 (generated)
 .npmrc                                        Task 1
 tsconfig.json                                 Task 1
 vitest.config.ts                              Task 1
-.eslintrc.cjs                                 Task 1
+eslint.config.js                              Task 1
 .prettierrc                                   Task 1
 .gitignore                                    (already present, may extend in Task 1)
 
@@ -125,7 +125,7 @@ PROJECT_MEMORY.md                             Task 23 (modify)
   },
   "packageManager": "pnpm@10",
   "scripts": {
-    "lint": "eslint src tests",
+    "lint": "eslint .",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
     "typecheck": "tsc --noEmit",
@@ -136,12 +136,13 @@ PROJECT_MEMORY.md                             Task 23 (modify)
     "zod": "^4"
   },
   "devDependencies": {
+    "@eslint/js": "^10",
     "@types/node": "^22",
-    "@typescript-eslint/eslint-plugin": "^8",
-    "@typescript-eslint/parser": "^8",
-    "eslint": "^9",
+    "@vitest/coverage-v8": "^4",
+    "eslint": "^10",
     "prettier": "^3",
-    "typescript": "^6",
+    "typescript": "~6.0",
+    "typescript-eslint": "^8.59",
     "vitest": "^4"
   }
 }
@@ -173,7 +174,6 @@ auto-install-peers=true
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
     "types": ["node"],
-    "outDir": "dist",
     "noEmit": true
   },
   "include": ["src/**/*", "tests/**/*", "vitest.config.ts"]
@@ -198,33 +198,40 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 1.5: Write `.eslintrc.cjs`.**
+- [ ] **Step 1.5: Write `eslint.config.js`.**
 
 ```js
-/* eslint-env node */
-module.exports = {
-  root: true,
-  parser: "@typescript-eslint/parser",
-  parserOptions: {
-    ecmaVersion: 2022,
-    sourceType: "module",
-    project: "./tsconfig.json",
-  },
-  plugins: ["@typescript-eslint"],
-  extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended-type-checked",
-  ],
-  env: { node: true, es2022: true },
-  ignorePatterns: ["dist/", "coverage/", "*.cjs"],
-  rules: {
-    "@typescript-eslint/consistent-type-imports": "error",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+  {
+    ignores: [
+      "dist/**",
+      "coverage/**",
+      "node_modules/**",
+      "*.config.js",
+      "*.config.ts",
     ],
   },
-};
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
+);
 ```
 
 - [ ] **Step 1.6: Write `.prettierrc`.**
@@ -275,7 +282,7 @@ Expected: each exits 0. If `format:check` fails, run `pnpm format` and re-check.
 - [ ] **Step 1.10: Commit.**
 
 ```bash
-git add package.json pnpm-lock.yaml .npmrc tsconfig.json vitest.config.ts .eslintrc.cjs .prettierrc tests/unit/_scaffold.test.ts
+git add package.json pnpm-lock.yaml .npmrc tsconfig.json vitest.config.ts eslint.config.js .prettierrc tests/unit/_scaffold.test.ts
 git commit -m "feat(scaffold): typescript / vitest / eslint / prettier project skeleton"
 ```
 

@@ -12,9 +12,10 @@ playwright-report/
 test-results/
 .vitest-cache/
 
-# Editor / OS
+# Editor / OS / agent tooling
 .vscode/
 .idea/
+.claude/
 .DS_Store
 *.swp
 *.swo

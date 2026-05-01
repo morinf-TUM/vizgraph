@@ -1,6 +1,7 @@
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useHistoryStore } from "../stores/historyStore";
+import { useExecutionStore } from "../stores/executionStore";
 import { saveVersioned } from "../../serializer/versioned";
 import { loadGraph } from "../../serializer/index";
 import { GraphDocumentSchema } from "../../document/types";
@@ -9,6 +10,7 @@ export const useFileIO = () => {
   const docStore = useDocumentStore();
   const editorStore = useEditorStore();
   const history = useHistoryStore();
+  const execution = useExecutionStore();
 
   const save = (filename = "graph.json"): void => {
     const json = saveVersioned(docStore.doc);
@@ -52,6 +54,9 @@ export const useFileIO = () => {
     editorStore.clearSelection();
     editorStore.markClean();
     history.clear();
+    // Stale overlays from a previous graph would be misleading; clear the
+    // run result so the fresh document opens in edit mode.
+    execution.clearResult();
     return { ok: true };
   };
 

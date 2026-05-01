@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "graph_id": "simple-add",
+  "ticks": [
+    {
+      "tick": 0,
+      "started_at_ns": 0,
+      "duration_ns": 27000,
+      "nodes": [
+        { "id": 1, "outputs": { "out": 2 }, "duration_ns": 1000, "error": null },
+        { "id": 2, "outputs": { "out": 3 }, "duration_ns": 1000, "error": null },
+        { "id": 3, "outputs": { "sum": 5 }, "duration_ns": 12000, "error": null },
+        { "id": 4, "outputs": {}, "duration_ns": 13000, "error": null }
+      ]
+    }
+  ]
+}

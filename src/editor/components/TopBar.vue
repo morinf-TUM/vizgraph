@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useHistoryStore } from "../stores/historyStore";
+import { useExecutionStore } from "../stores/executionStore";
 import { useFileIO } from "../composables/useFileIO";
 import { useAutoLayout } from "../composables/useAutoLayout";
+import { useRunResultImport } from "../composables/useRunResultImport";
 
 const docStore = useDocumentStore();
 const editorStore = useEditorStore();
 const history = useHistoryStore();
+const execution = useExecutionStore();
 const fileIO = useFileIO();
 const autoLayout = useAutoLayout();
+const runResultImport = useRunResultImport();
 
 const fileInput = ref<HTMLInputElement | null>(null);
+const runResultInput = ref<HTMLInputElement | null>(null);
 const error = ref<string | null>(null);
 
 const onNew = (): void => {
@@ -20,6 +25,7 @@ const onNew = (): void => {
   editorStore.clearSelection();
   editorStore.markClean();
   history.clear();
+  execution.clearResult();
   error.value = null;
 };
 
@@ -32,11 +38,7 @@ const onFileSelected = async (event: Event): Promise<void> => {
   const file = target.files?.[0];
   if (!file) return;
   const result = await fileIO.open(file);
-  if (!result.ok) {
-    error.value = result.reason;
-  } else {
-    error.value = null;
-  }
+  error.value = result.ok ? null : result.reason;
   target.value = "";
 };
 
@@ -61,6 +63,38 @@ const onRedo = (): void => {
 const onTidy = (): void => {
   autoLayout.tidy();
 };
+
+const onImportRun = (): void => {
+  runResultInput.value?.click();
+};
+
+const onRunResultSelected = async (event: Event): Promise<void> => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+  const result = await runResultImport.importFile(file);
+  error.value = result.ok ? null : result.reason;
+  target.value = "";
+};
+
+const onClearRun = (): void => {
+  execution.clearResult();
+};
+
+const onToggleMode = (): void => {
+  execution.toggleMode();
+};
+
+const onTickPrev = (): void => {
+  if (execution.tickIndex > 0) execution.setTickIndex(execution.tickIndex - 1);
+};
+const onTickNext = (): void => {
+  if (execution.tickIndex < execution.tickCount - 1) {
+    execution.setTickIndex(execution.tickIndex + 1);
+  }
+};
+
+const showTickControls = computed(() => execution.tickCount > 1);
 </script>
 
 <template>
@@ -68,6 +102,13 @@ const onTidy = (): void => {
     <div class="top-bar__left">
       <strong>n8n-port</strong>
       <span v-if="editorStore.dirty" class="top-bar__dirty">unsaved</span>
+      <span
+        class="top-bar__mode"
+        :class="`top-bar__mode--${execution.mode}`"
+        data-testid="top-bar-mode"
+      >
+        {{ execution.mode }}
+      </span>
     </div>
     <div class="top-bar__actions">
       <button type="button" data-testid="topbar-new" @click="onNew">New</button>
@@ -83,6 +124,48 @@ const onTidy = (): void => {
       </button>
       <span class="top-bar__sep" />
       <button type="button" data-testid="topbar-tidy" @click="onTidy">Tidy</button>
+      <span class="top-bar__sep" />
+      <button type="button" data-testid="topbar-import-run" @click="onImportRun">
+        Import RunResult
+      </button>
+      <button
+        type="button"
+        data-testid="topbar-toggle-mode"
+        :disabled="!execution.result"
+        @click="onToggleMode"
+      >
+        {{ execution.mode === "inspect" ? "Edit mode" : "Inspect mode" }}
+      </button>
+      <button
+        v-if="execution.result"
+        type="button"
+        data-testid="topbar-clear-run"
+        @click="onClearRun"
+      >
+        Clear run
+      </button>
+      <template v-if="showTickControls">
+        <span class="top-bar__sep" />
+        <button
+          type="button"
+          data-testid="topbar-tick-prev"
+          :disabled="execution.tickIndex === 0"
+          @click="onTickPrev"
+        >
+          ◀
+        </button>
+        <span class="top-bar__tick" data-testid="topbar-tick-label">
+          tick {{ execution.tickIndex }} / {{ execution.tickCount - 1 }}
+        </span>
+        <button
+          type="button"
+          data-testid="topbar-tick-next"
+          :disabled="execution.tickIndex >= execution.tickCount - 1"
+          @click="onTickNext"
+        >
+          ▶
+        </button>
+      </template>
       <input
         ref="fileInput"
         type="file"
@@ -90,6 +173,14 @@ const onTidy = (): void => {
         class="top-bar__file-input"
         data-testid="topbar-file-input"
         @change="onFileSelected"
+      />
+      <input
+        ref="runResultInput"
+        type="file"
+        accept="application/json,.json"
+        class="top-bar__file-input"
+        data-testid="topbar-runresult-input"
+        @change="onRunResultSelected"
       />
     </div>
     <div v-if="error" class="top-bar__error" data-testid="topbar-error">{{ error }}</div>
@@ -114,6 +205,24 @@ const onTidy = (): void => {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+.top-bar__mode {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.top-bar__mode--edit {
+  border-color: #d0d7de;
+  color: #6b7280;
+  background: #fff;
+}
+.top-bar__mode--inspect {
+  border-color: #2563eb;
+  color: #1e40af;
+  background: #dbeafe;
 }
 .top-bar__actions {
   display: flex;
@@ -143,6 +252,11 @@ const onTidy = (): void => {
 }
 .top-bar__file-input {
   display: none;
+}
+.top-bar__tick {
+  font-size: 11px;
+  color: #6b7280;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .top-bar__error {
   margin-left: auto;

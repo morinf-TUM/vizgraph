@@ -85,3 +85,95 @@ test("validation panel surfaces missing_required_parameter for a fresh Constant"
   // instead, which fires for any Constant with no edges.
   await expect(page.getByTestId("validation-warning-isolated_node")).toBeVisible();
 });
+
+test("import RunResult: overlays render in inspect mode and clear when toggled", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // Load the simple-add legacy fixture via the file input so the node ids
+  // match the run-result fixture (1, 2, 3, 4).
+  const graphJson = JSON.stringify({
+    version: 1,
+    graph: {
+      nodes: [
+        {
+          id: 1,
+          name: "Two",
+          type: "Constant",
+          position: { x: 0, y: 0 },
+          parameters: { value: 2 },
+        },
+        {
+          id: 2,
+          name: "Three",
+          type: "Constant",
+          position: { x: 200, y: 0 },
+          parameters: { value: 3 },
+        },
+        { id: 3, name: "Adder", type: "Add", position: { x: 400, y: 0 } },
+        { id: 4, name: "Output", type: "Print", position: { x: 600, y: 0 } },
+      ],
+      edges: [
+        {
+          id: "e1_out__3_a",
+          source: { node: 1, port: "out" },
+          target: { node: 3, port: "a" },
+        },
+        {
+          id: "e2_out__3_b",
+          source: { node: 2, port: "out" },
+          target: { node: 3, port: "b" },
+        },
+        {
+          id: "e3_sum__4_in",
+          source: { node: 3, port: "sum" },
+          target: { node: 4, port: "in" },
+        },
+      ],
+    },
+  });
+  await page
+    .getByTestId("topbar-file-input")
+    .setInputFiles({ name: "graph.json", mimeType: "application/json", buffer: Buffer.from(graphJson) });
+  await expect(page.locator(".vue-flow__node-custom")).toHaveCount(4);
+
+  // Mode starts as edit; toggle is disabled until a RunResult is imported.
+  await expect(page.getByTestId("top-bar-mode")).toHaveText("edit");
+  await expect(page.getByTestId("topbar-toggle-mode")).toBeDisabled();
+
+  // Import the matching run-result.
+  const runResultJson = JSON.stringify({
+    version: 1,
+    graph_id: "simple-add",
+    ticks: [
+      {
+        tick: 0,
+        started_at_ns: 0,
+        duration_ns: 27000,
+        nodes: [
+          { id: 1, outputs: { out: 2 }, duration_ns: 1000, error: null },
+          { id: 2, outputs: { out: 3 }, duration_ns: 1000, error: null },
+          { id: 3, outputs: { sum: 5 }, duration_ns: 12000, error: null },
+          { id: 4, outputs: {}, duration_ns: 13000, error: null },
+        ],
+      },
+    ],
+  });
+  await page
+    .getByTestId("topbar-runresult-input")
+    .setInputFiles({
+      name: "run.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(runResultJson),
+    });
+
+  // Mode should now be inspect and the Add node's sum overlay should show 5.
+  await expect(page.getByTestId("top-bar-mode")).toHaveText("inspect");
+  await expect(page.getByTestId("overlay-3-sum")).toHaveText("5");
+  await expect(page.getByTestId("overlay-1-out")).toHaveText("2");
+
+  // Toggling back to edit mode hides overlays.
+  await page.getByTestId("topbar-toggle-mode").click();
+  await expect(page.getByTestId("top-bar-mode")).toHaveText("edit");
+  await expect(page.getByTestId("overlay-3-sum")).toHaveCount(0);
+});

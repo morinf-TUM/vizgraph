@@ -9,6 +9,10 @@ export const useEditorStore = defineStore("editor", () => {
   const selectedEdgeIds = ref<Set<string>>(new Set());
   const viewport = ref<Viewport>({ ...DEFAULT_VIEWPORT });
   const dirty = ref(false);
+  // Set by CanvasView once VueFlow has mounted; called by useShortcuts to
+  // implement the F (fit-view) binding without coupling the global keyboard
+  // layer to VueFlow's component tree.
+  const fitViewFn = ref<(() => void) | undefined>(undefined);
 
   const hasSelection = computed(
     () => selectedNodeIds.value.size > 0 || selectedEdgeIds.value.size > 0,
@@ -60,11 +64,23 @@ export const useEditorStore = defineStore("editor", () => {
     dirty.value = false;
   };
 
+  const setFitViewFn = (fn: (() => void) | undefined): void => {
+    fitViewFn.value = fn;
+  };
+
+  const fitView = (): boolean => {
+    const fn = fitViewFn.value;
+    if (!fn) return false;
+    fn();
+    return true;
+  };
+
   return {
     selectedNodeIds,
     selectedEdgeIds,
     viewport,
     dirty,
+    fitViewFn,
     hasSelection,
     selectNode,
     selectEdge,
@@ -73,5 +89,7 @@ export const useEditorStore = defineStore("editor", () => {
     setViewport,
     markDirty,
     markClean,
+    setFitViewFn,
+    fitView,
   };
 });

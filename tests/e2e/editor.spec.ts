@@ -65,6 +65,19 @@ test("undo / redo: adding a node, undoing, and redoing reflects in the canvas", 
   await expect(page.locator(".vue-flow__node-custom")).toHaveCount(1);
 });
 
+test("Ctrl+S keyboard shortcut triggers a download", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("palette-Constant").click();
+  // Click the canvas to drop focus from the palette button so the next
+  // Control+S isn't intercepted as an accidental Enter on a focused button.
+  await page.getByTestId("canvas-root").click({ position: { x: 200, y: 200 } });
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.keyboard.press("Control+s");
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("graph.json");
+});
+
 test("validation panel surfaces missing_required_parameter for a fresh Constant", async ({
   page,
 }) => {

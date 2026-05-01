@@ -4,6 +4,13 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Backlog: Ctrl+S / Ctrl+O / F keyboard shortcuts (2026-05-02)
+- `useShortcuts.ts` extended with `Ctrl/Cmd+S` (save current document via `useFileIO.save("graph.json")`), `Ctrl/Cmd+O` (programmatic file picker via the new `src/editor/openFile.ts` helper, then `useFileIO.open(file)`), and `F` (fit-view, dispatched through the editor store).
+- `editorStore` gains `fitViewFn: Ref<(() => void) | undefined>`, `setFitViewFn(fn)`, and `fitView(): boolean`. `CanvasView` registers `useVueFlow().fitView` on mount and clears the slot on unmount, so the global keyboard layer never holds a reference to a stale VueFlow instance.
+- `src/editor/openFile.ts`: pops a transient hidden `<input type="file">` and resolves with the picked `File` (or `undefined` on cancel). Works in every browser and decouples Ctrl+O from the TopBar's file input.
+- Editable-target skip rule (already in place for the existing shortcuts) covers the new keys too — typing in the property panel or palette search isn't intercepted.
+- Tests: 10 new Vitest cases in `useShortcuts.test.ts` cover Ctrl+Z/Y/Shift+Z/C/V/Delete plus the three new keys (S spies on `URL.createObjectURL` + the anchor `click` to confirm the download path; F asserts the registered fit-view is invoked and no-ops gracefully when unregistered; the editable-target skip rule is exercised against a real focused `<input>`). 1 new Playwright case asserts `Control+S` triggers a real browser download with `graph.json` filename. Total: 33 Vitest files / 235 cases + 7 Playwright cases.
+
 ### Backlog: code-splitting + Element Plus eager-load removal (2026-05-02)
 - Initial-bundle gzip dropped from **417 KB → ~17 KB** (the editor shell — TopBar / Palette / PropertyPanel / ValidationPanel + Vue + Pinia). Total bundle from 1,306 KB → ~438 KB across 6 chunks.
 - `src/main.ts` no longer eager-imports Element Plus. The dep stays in `package.json` (locked stack), but the global `app.use(ElementPlus)` and `element-plus/dist/index.css` import were ~700 KB of unused weight — no component or directive in the editor uses Element Plus, only its CSS variables (which already had native fallbacks). Future components that need Element Plus can import per-component (`import { ElButton } from "element-plus"`).

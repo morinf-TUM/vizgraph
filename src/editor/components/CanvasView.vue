@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { VueFlow, type Connection, type EdgeChange, type NodeChange } from "@vue-flow/core";
+import { computed, onMounted, onUnmounted } from "vue";
+import {
+  VueFlow,
+  useVueFlow,
+  type Connection,
+  type EdgeChange,
+  type NodeChange,
+} from "@vue-flow/core";
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
 import { Background } from "@vue-flow/background";
@@ -13,6 +19,22 @@ import CustomNode from "./CustomNode.vue";
 
 const docStore = useDocumentStore();
 const editorStore = useEditorStore();
+const { fitView } = useVueFlow();
+
+// Expose VueFlow's fitView to the global keyboard shortcut layer (the F key)
+// without forcing useShortcuts to be a descendant of the canvas. The store
+// reference is cleared on unmount so dispatching to a stale instance after
+// the canvas tears down is impossible.
+onMounted(() => {
+  editorStore.setFitViewFn(() => {
+    // VueFlow's fitView returns a promise (it animates); we don't await it
+    // because the keyboard shortcut layer is fire-and-forget.
+    void fitView();
+  });
+});
+onUnmounted(() => {
+  editorStore.setFitViewFn(undefined);
+});
 const ops = useCanvasOperations();
 
 const flowNodes = computed(() =>

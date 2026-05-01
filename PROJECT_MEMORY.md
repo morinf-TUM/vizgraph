@@ -10,7 +10,7 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 ## Current phase
 
-**Phase 0 — Analysis & Decision** (in progress this session). On completion, this line moves to **Phase 1 — Schema & Runtime Adapter**.
+**Phase 1 — Schema & Runtime Adapter** (Plan Task 1 complete; Plan Task 2 is the resumption point). Toolchain verified end-to-end on `phase-1-schema-and-adapter` branch.
 
 ## Tech stack (locked Phase 0)
 
@@ -92,6 +92,16 @@ Pure functions in `document`, `registry`, `serializer`, `validator`, `compiler` 
 - pnpm not installed; corepack present at `/home/fom/.nvm/versions/node/v18.20.8/bin/corepack`. Use `corepack enable && corepack use pnpm@latest-10` in Phase 1.
 - git available.
 - No CI yet.
+
+## Environment notes (Phase 1 / Plan Task 1 — toolchain verified 2026-05-01)
+
+- Node v22.22.2 active via nvm; default alias is `22`. Bash subshells **do not** auto-source nvm — every Node/pnpm command in a non-login shell needs `. ~/.nvm/nvm.sh && nvm use 22 >/dev/null && …` as a prefix.
+- pnpm 10.33.2 active via corepack; corepack required a fully-qualified semver in `package.json` `packageManager` (`pnpm@10` was rejected, `pnpm@10.33.2` accepted).
+- Resolved versions in `pnpm-lock.yaml`: zod 4.4.1, vitest 4.1.5, typescript 6.0.3, eslint 10.2.1, typescript-eslint 8.59.1, @vitest/coverage-v8 4.1.5, @eslint/js 10.0.1. Notable transitive: `rolldown@1.0.0-rc.17` (RC; pulled by Vitest 4 — flag for the Phase-2 Vite build but not currently exercised).
+- ESLint uses flat config (`eslint.config.js`) with the `typescript-eslint` meta package and `projectService: true`. Empty `src/` does not break `pnpm lint`.
+- Prettier scripts use `--no-error-on-unmatched-pattern` so an empty `src/` does not break `pnpm format:check`.
+- All four `pnpm` verifications (test/lint/format:check/typecheck) exit 0 at HEAD of the feature branch.
+- No CI yet (Plan Task 22 will add it).
 
 ## Contributor identity
 

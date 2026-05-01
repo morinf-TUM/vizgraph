@@ -288,6 +288,8 @@ git add package.json pnpm-lock.yaml .npmrc tsconfig.json vitest.config.ts eslint
 git commit -m "feat(scaffold): typescript / vitest / eslint / prettier project skeleton"
 ```
 
+> **Note (2026-05-01 close):** in this branch's actual history, Step 1.10 was split across multiple commits as fixes were applied: `fc764de` (initial config files), `1fb6251` (flat ESLint config + verified version pins), `f88d675` (packageManager pinned to fully-qualified `pnpm@10.33.2` because corepack rejected the major-only form), and `3d7cb92` (install + smoke test + verify, plus the prettier `--no-error-on-unmatched-pattern` flag that the bare `src tests` glob would otherwise have failed on). A fresh execution from a clean repo, using the corrected plan above, will produce a single combined commit instead. Preserve this multi-commit history rather than rewriting it.
+
 ---
 
 ## Task 2: Diagnostic type and code constants

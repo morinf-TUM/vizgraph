@@ -24,7 +24,7 @@
 
 Prerequisite: upgrade Node to 22 LTS on dev machine; `corepack enable && corepack use pnpm@latest-10`.
 
-- [ ] Scaffold project: `pnpm init`, install deps, configure TS strict, ESLint, Prettier, Vitest, Vite.
+- [~] Scaffold project: `pnpm init`, install deps, configure TS strict, ESLint, Prettier, Vitest, Vite. *(Config files written and committed on `phase-1-schema-and-adapter` branch — `fc764de` + `1fb6251`. Install + smoke test + lint/typecheck verification deferred until Node 22 is on PATH. Code-quality reviewed; cleared to resume.)*
 - [ ] `src/document/types.ts` — `GraphDocument`, `Node`, `Edge`, `Viewport` types and Zod schemas.
 - [ ] `src/document/ids.ts` — node-ID and edge-ID allocators (deterministic, monotonic).
 - [ ] `src/registry/types.ts` — `NodeTypeDescription` Zod schema and TS type.

@@ -123,7 +123,7 @@ PROJECT_MEMORY.md                             Task 23 (modify)
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@10",
+  "packageManager": "pnpm@10.33.2",
   "scripts": {
     "lint": "eslint .",
     "format": "prettier --write src tests",

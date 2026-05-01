@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "graph": {
+    "nodes": [
+      {
+        "id": 1,
+        "name": "Two",
+        "type": "Constant",
+        "position": { "x": 0, "y": 0 },
+        "parameters": { "value": 2 }
+      },
+      {
+        "id": 2,
+        "name": "Three",
+        "type": "Constant",
+        "position": { "x": 200, "y": 0 },
+        "parameters": { "value": 3 }
+      },
+      {
+        "id": 3,
+        "name": "Adder",
+        "type": "Add",
+        "position": { "x": 400, "y": 0 },
+        "parameters": {}
+      },
+      {
+        "id": 4,
+        "name": "Output",
+        "type": "Print",
+        "position": { "x": 600, "y": 0 },
+        "parameters": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1_out__3_a",
+        "source": { "node": 1, "port": "out" },
+        "target": { "node": 3, "port": "a" }
+      },
+      {
+        "id": "e2_out__3_b",
+        "source": { "node": 2, "port": "out" },
+        "target": { "node": 3, "port": "b" }
+      },
+      {
+        "id": "e3_sum__4_in",
+        "source": { "node": 3, "port": "sum" },
+        "target": { "node": 4, "port": "in" }
+      }
+    ]
+  }
+}

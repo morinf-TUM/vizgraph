@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    { "uid": 1, "name": "Two", "type": "Constant", "value": 2 },
+    { "uid": 2, "name": "Three", "type": "Constant", "value": 3 },
+    { "uid": 3, "name": "Adder", "type": "Add" },
+    { "uid": 4, "name": "Output", "type": "Print" }
+  ],
+  "edges": [
+    { "src": 1, "dst": 3, "port_out": "out", "port_in": "a" },
+    { "src": 2, "dst": 3, "port_out": "out", "port_in": "b" },
+    { "src": 3, "dst": 4, "port_out": "sum", "port_in": "in" }
+  ]
+}

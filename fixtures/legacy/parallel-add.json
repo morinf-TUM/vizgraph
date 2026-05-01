@@ -1,0 +1,21 @@
+{
+  "nodes": [
+    { "uid": 1, "type": "Constant", "value": 10 },
+    { "uid": 2, "type": "Constant", "value": 20 },
+    { "uid": 3, "type": "Constant", "value": 30 },
+    { "uid": 4, "type": "Constant", "value": 40 },
+    { "uid": 5, "name": "Add_Left", "type": "Add" },
+    { "uid": 6, "name": "Add_Right", "type": "Add" },
+    { "uid": 7, "name": "Add_Final", "type": "Add" },
+    { "uid": 8, "type": "Print" }
+  ],
+  "edges": [
+    { "src": 1, "dst": 5, "port_out": "out", "port_in": "a" },
+    { "src": 2, "dst": 5, "port_out": "out", "port_in": "b" },
+    { "src": 3, "dst": 6, "port_out": "out", "port_in": "a" },
+    { "src": 4, "dst": 6, "port_out": "out", "port_in": "b" },
+    { "src": 5, "dst": 7, "port_out": "sum", "port_in": "a" },
+    { "src": 6, "dst": 7, "port_out": "sum", "port_in": "b" },
+    { "src": 7, "dst": 8, "port_out": "sum", "port_in": "in" }
+  ]
+}

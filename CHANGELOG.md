@@ -4,6 +4,13 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Backlog: code-splitting + Element Plus eager-load removal (2026-05-02)
+- Initial-bundle gzip dropped from **417 KB → ~17 KB** (the editor shell — TopBar / Palette / PropertyPanel / ValidationPanel + Vue + Pinia). Total bundle from 1,306 KB → ~438 KB across 6 chunks.
+- `src/main.ts` no longer eager-imports Element Plus. The dep stays in `package.json` (locked stack), but the global `app.use(ElementPlus)` and `element-plus/dist/index.css` import were ~700 KB of unused weight — no component or directive in the editor uses Element Plus, only its CSS variables (which already had native fallbacks). Future components that need Element Plus can import per-component (`import { ElButton } from "element-plus"`).
+- `src/App.vue`: `CanvasView` is now a `defineAsyncComponent` so the shell paints immediately while VueFlow + the @vue-flow companions load in the background. Loading state is a small `data-testid="canvas-loading"` placeholder.
+- `vite.config.ts`: `build.rolldownOptions.output.codeSplitting.groups` declarative vendor splits — `vendor-vue` (vue + pinia + @vue/runtime-*), `vendor-vueflow`, `vendor-graph` (dagre), `vendor-zod`. Each chunk caches independently across editor builds.
+- 225 Vitest cases + 6 Playwright e2e cases all green; lint / typecheck / format clean.
+
 ### Backlog: plugin / external node-type registration API (2026-05-02)
 - `NodeTypeRegistry` interface gains `register(description, { replace? })`, `unregister(type)`, and `has(type)`. Registration re-parses through `NodeTypeDescriptionSchema` so plugin authors get the same Zod diagnostics the loader path produces. Re-registering an existing type throws by default; pass `{ replace: true }` to override (silent shadowing is intentionally not allowed).
 - `defaultRegistry()` is the canonical plugin host: a third-party plugin imports the singleton, calls `register(...)` for each type it provides at app boot before mount, and the rest of the editor (`Palette`, `CustomNode`, `validator/rules/ports`, `params`, `useCanvasOperations`) sees the new types unchanged. Reactivity for hot-add at runtime is deferred — pre-mount registration is the supported pattern for v1.

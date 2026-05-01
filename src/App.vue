@@ -1,11 +1,22 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from "vue";
 import TopBar from "./editor/components/TopBar.vue";
 import Palette from "./editor/components/Palette.vue";
-import CanvasView from "./editor/components/CanvasView.vue";
 import PropertyPanel from "./editor/components/PropertyPanel.vue";
 import ValidationPanel from "./editor/components/ValidationPanel.vue";
 import { useLiveValidation } from "./editor/composables/useLiveValidation";
 import { useShortcuts } from "./editor/composables/useShortcuts";
+
+// CanvasView pulls in VueFlow + the @vue-flow/* companion packages, which is
+// the largest single chunk in the bundle. Splitting it out lets the editor
+// shell (TopBar / Palette / Property / Validation panels) paint immediately
+// while the canvas chunk loads in the background.
+const CanvasView = defineAsyncComponent({
+  loader: () => import("./editor/components/CanvasView.vue"),
+  loadingComponent: {
+    template: `<div class="canvas-loading" data-testid="canvas-loading">Loading canvas…</div>`,
+  },
+});
 
 useLiveValidation();
 useShortcuts();
@@ -62,5 +73,17 @@ useShortcuts();
   position: relative;
   overflow: hidden;
   background: var(--el-bg-color-page, #fafafa);
+}
+</style>
+
+<style>
+.canvas-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #6b7280;
+  font-size: 12px;
 }
 </style>

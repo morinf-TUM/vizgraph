@@ -35,3 +35,6 @@ yarn-debug.log*
 # Lockfiles for non-pnpm package managers (pnpm-lock.yaml is committed)
 package-lock.json
 yarn.lock
+
+# TypeScript incremental build cache
+*.tsbuildinfo

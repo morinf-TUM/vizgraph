@@ -16,8 +16,8 @@
 - [x] Write ADRs 0001–0006 in `docs/decisions/`.
 - [x] Write `README.md` skeleton.
 - [x] Write `.gitignore`, `CHANGELOG.md`.
-- [ ] `git init` and initial commit.
-- [ ] Spec self-review pass (placeholders / contradictions / ambiguity / scope).
+- [x] `git init` and initial commit.
+- [x] Spec self-review pass (placeholders / contradictions / ambiguity / scope).
 - [ ] User reviews spec; gate before Phase 1.
 
 ## Phase 1 — Schema & Runtime Adapter

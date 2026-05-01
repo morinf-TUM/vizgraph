@@ -10,7 +10,7 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 ## Current phase
 
-**Phase 1 — Schema & Runtime Adapter** (Plan Task 1 complete; Plan Task 2 is the resumption point). Toolchain verified end-to-end on `phase-1-schema-and-adapter` branch.
+**Phase 1 — Schema & Runtime Adapter** (Plan Tasks 1–10 complete; Plan Task 11 — `src/validator/rules/*.ts` — is the resumption point). Toolchain verified end-to-end on `phase-1-schema-and-adapter` branch.
 
 ## Tech stack (locked Phase 0)
 

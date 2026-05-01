@@ -102,6 +102,7 @@ Pure functions in `document`, `registry`, `serializer`, `validator`, `compiler` 
 - Prettier scripts use `--no-error-on-unmatched-pattern` so an empty `src/` does not break `pnpm format:check`.
 - All four `pnpm` verifications (test/lint/format:check/typecheck) exit 0 at HEAD of the feature branch.
 - No CI yet (Plan Task 22 will add it).
+- TS-type assertion gotcha: `tsconfig.json#include` only covers `src/**/*`, `tests/**/*`, and `vitest.config.ts`. Any throwaway probe file used to verify a type narrows correctly **must** live inside `src/` or `tests/`; a probe at the repo root is silently ignored by `tsc` and produces a false-positive "passes" signal.
 
 ## Contributor identity
 

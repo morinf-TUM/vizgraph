@@ -3,6 +3,8 @@ import type { DiagnosticCode } from "./codes";
 
 export const DiagnosticSchema = z.object({
   severity: z.enum(["error", "warning"]),
+  // Lax at runtime per spec §6.3 (forward-compat for codes added in later phases);
+  // narrowed to DiagnosticCode in the TS Diagnostic type below.
   code: z.string(),
   message: z.string(),
   node_id: z.number().int().optional(),
@@ -21,11 +23,11 @@ export interface DiagnosticInit {
 }
 
 export const error = (init: DiagnosticInit): Diagnostic => ({
-  severity: "error",
   ...init,
+  severity: "error",
 });
 
 export const warning = (init: DiagnosticInit): Diagnostic => ({
-  severity: "warning",
   ...init,
+  severity: "warning",
 });

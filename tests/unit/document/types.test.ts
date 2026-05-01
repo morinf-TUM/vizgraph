@@ -66,16 +66,18 @@ describe("GraphDocumentSchema", () => {
     expect(GraphDocumentSchema.safeParse(input).success).toBe(true);
   });
 
-  it("rejects a non-positive frequency_hz", () => {
-    const bad: unknown = {
-      version: 1,
-      graph: {
-        nodes: [
-          { id: 1, type: "Print", position: { x: 0, y: 0 }, parameters: {}, frequency_hz: 0 },
-        ],
-        edges: [],
-      },
-    };
-    expect(GraphDocumentSchema.safeParse(bad).success).toBe(false);
+  it("rejects a non-positive frequency_hz (zero and negative)", () => {
+    for (const freq of [0, -5]) {
+      const bad: unknown = {
+        version: 1,
+        graph: {
+          nodes: [
+            { id: 1, type: "Print", position: { x: 0, y: 0 }, parameters: {}, frequency_hz: freq },
+          ],
+          edges: [],
+        },
+      };
+      expect(GraphDocumentSchema.safeParse(bad).success, `freq=${freq}`).toBe(false);
+    }
   });
 });

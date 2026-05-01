@@ -1053,7 +1053,7 @@ The legacy format is described in the spec §6.5 and the prompt under "Legacy JS
 - maps `Constant.value` to `parameters.value`
 - synthesises edge IDs via `edgeIdFor`
 
-- [ ] **Step 9.1: Write the failing test.**
+- [x] **Step 9.1: Write the failing test.**
 
 `tests/unit/serializer/legacy.test.ts`:
 ```ts
@@ -1123,17 +1123,19 @@ describe("loadLegacy", () => {
 });
 ```
 
-- [ ] **Step 9.2: Run; expect failure.**
+- [x] **Step 9.2: Run; expect failure.**
 
 Run: `pnpm test tests/unit/serializer/legacy.test.ts`
 Expected: module not found.
 
-- [ ] **Step 9.3: Implement `src/serializer/legacy.ts`.**
+- [x] **Step 9.3: Implement `src/serializer/legacy.ts`.**
+
+Uses direct `LoadResult` early returns — no exceptions for control flow. Both `safeLoadLegacy` and `loadLegacy` are exported (the latter is an alias for the former) so the test and the future Task 10 dispatcher can each import whichever name is convenient.
 
 ```ts
 import * as z from "zod";
 import { edgeIdFor } from "../document/ids";
-import type { GraphDocument, GraphNode, GraphEdge } from "../document/types";
+import type { GraphNode, GraphEdge, GraphDocument } from "../document/types";
 import { GraphDocumentSchema } from "../document/types";
 import type { LoadResult } from "./versioned";
 
@@ -1158,32 +1160,38 @@ const LegacyShapeSchema = z.object({
 
 const DEFAULT_X_STRIDE = 200;
 
-export const loadLegacy = (input: unknown): LoadResult => {
+export const safeLoadLegacy = (input: unknown): LoadResult => {
   const r = LegacyShapeSchema.safeParse(input);
   if (!r.success) return { success: false, error: r.error.message };
 
-  const nodes: GraphNode[] = r.data.nodes.map((n, idx): GraphNode => {
+  const nodes: GraphNode[] = [];
+  for (const [idx, n] of r.data.nodes.entries()) {
     const parameters: Record<string, unknown> = {};
     if (n.type === "Constant") {
       if (n.value === undefined) {
-        throw new ZodFailure(`Constant node ${n.uid} missing required value`);
+        return {
+          success: false,
+          error: `Constant node ${n.uid} missing required value`,
+        };
       }
       parameters.value = n.value;
     }
-    return {
+    nodes.push({
       id: n.uid,
       ...(n.name !== undefined ? { name: n.name } : {}),
       type: n.type,
       position: { x: idx * DEFAULT_X_STRIDE, y: 0 },
       parameters,
-    };
-  });
+    });
+  }
 
-  const edges: GraphEdge[] = r.data.edges.map((e): GraphEdge => ({
-    id: edgeIdFor(e.src, e.port_out, e.dst, e.port_in),
-    source: { node: e.src, port: e.port_out },
-    target: { node: e.dst, port: e.port_in },
-  }));
+  const edges: GraphEdge[] = r.data.edges.map(
+    (e): GraphEdge => ({
+      id: edgeIdFor(e.src, e.port_out, e.dst, e.port_in),
+      source: { node: e.src, port: e.port_out },
+      target: { node: e.dst, port: e.port_in },
+    }),
+  );
 
   const doc: GraphDocument = { version: 1, graph: { nodes, edges } };
   const final = GraphDocumentSchema.safeParse(doc);
@@ -1191,40 +1199,21 @@ export const loadLegacy = (input: unknown): LoadResult => {
   return { success: true, data: final.data };
 };
 
-class ZodFailure extends Error {}
-
-const _wrap = (fn: () => LoadResult): LoadResult => {
-  try {
-    return fn();
-  } catch (e) {
-    if (e instanceof ZodFailure) return { success: false, error: e.message };
-    throw e;
-  }
-};
-
-export const safeLoadLegacy = (input: unknown): LoadResult => _wrap(() => loadLegacy(input));
+// Public alias kept so future Task 10 dispatch can import either name.
+export const loadLegacy = safeLoadLegacy;
 ```
 
-> Note: `loadLegacy` may throw `ZodFailure` for the "Constant missing value" case during the `.map()` traversal because the legacy schema marks `value` as optional (it's required *only* for Constant). `safeLoadLegacy` is the public surface that catches this and returns `{success:false}`. Tests in Step 9.1 pass through `safeLoadLegacy` indirectly via Task 10's dispatch, so the legacy-only test imports should call `safeLoadLegacy` for the rejection cases. Update the test to import that name now.
+- [x] **Step 9.4: Run tests + typecheck.**
 
-- [ ] **Step 9.4: Update the test to use `safeLoadLegacy` for the rejection cases.**
+The test file (Step 9.1) already imports `safeLoadLegacy as loadLegacy` directly — no update needed.
 
-In `tests/unit/serializer/legacy.test.ts`, replace the import line with:
-```ts
-import { safeLoadLegacy as loadLegacy } from "../../../src/serializer/legacy";
-```
+Run: `pnpm test && pnpm lint && pnpm typecheck && pnpm format:check`
+Expected: 30 passed (5 new + 25 existing); all checks green.
 
-(The success-path tests work the same way under either name; this single import keeps the file's body unchanged.)
-
-- [ ] **Step 9.5: Run tests + typecheck.**
-
-Run: `pnpm test tests/unit/serializer/legacy.test.ts && pnpm typecheck`
-Expected: 5 passed; typecheck passes.
-
-- [ ] **Step 9.6: Commit.**
+- [x] **Step 9.5: Commit.**
 
 ```bash
-git add src/serializer/legacy.ts tests/unit/serializer/legacy.test.ts
+git add src/serializer/legacy.ts tests/unit/serializer/legacy.test.ts docs/plans/2026-05-01-phase-1-schema-and-adapter.md
 git commit -m "feat(serializer): legacy read-only loader with port name preservation"
 ```
 

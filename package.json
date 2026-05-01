@@ -9,8 +9,8 @@
   "packageManager": "pnpm@10.33.2",
   "scripts": {
     "lint": "eslint .",
-    "format": "prettier --write src tests",
-    "format:check": "prettier --check src tests",
+    "format": "prettier --write --no-error-on-unmatched-pattern src tests",
+    "format:check": "prettier --check --no-error-on-unmatched-pattern src tests",
     "typecheck": "tsc --noEmit",
     "test": "vitest --run",
     "test:watch": "vitest"

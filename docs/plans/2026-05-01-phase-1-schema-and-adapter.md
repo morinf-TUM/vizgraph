@@ -126,8 +126,8 @@ PROJECT_MEMORY.md                             Task 23 (modify)
   "packageManager": "pnpm@10.33.2",
   "scripts": {
     "lint": "eslint .",
-    "format": "prettier --write src tests",
-    "format:check": "prettier --check src tests",
+    "format": "prettier --write --no-error-on-unmatched-pattern src tests",
+    "format:check": "prettier --check --no-error-on-unmatched-pattern src tests",
     "typecheck": "tsc --noEmit",
     "test": "vitest --run",
     "test:watch": "vitest"
@@ -270,6 +270,8 @@ Run: `pnpm test`
 Expected: 1 passed.
 
 - [ ] **Step 1.9: Verify lint, format, typecheck.**
+
+Prettier 3 exits non-zero on glob patterns that match nothing, so the `format` and `format:check` scripts pass `--no-error-on-unmatched-pattern` to keep an empty `src/` from breaking verification before Phase 1 lands its first source file.
 
 Run in sequence:
 ```

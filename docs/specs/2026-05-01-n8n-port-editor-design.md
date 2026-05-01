@@ -81,10 +81,12 @@ Exactly the prompt's shape: `{severity:"error"|"warning", code:string, message:s
 
 ### 6.4 `RunResult` (defined here)
 
-```jsonc
+Shape (`graph_id` may be null; `outputs` keys are output port names; `outputs` values are arbitrary JSON values typed at the port level; `error` is null on success or a string message on failure):
+
+```json
 {
   "version": 1,
-  "graph_id": "string|null",
+  "graph_id": null,
   "ticks": [
     {
       "tick": 0,
@@ -93,7 +95,7 @@ Exactly the prompt's shape: `{severity:"error"|"warning", code:string, message:s
       "nodes": [
         {
           "id": 3,
-          "outputs": { "<port>": <value> },
+          "outputs": { "sum": 5 },
           "duration_ns": 12345,
           "error": null
         }
@@ -103,7 +105,7 @@ Exactly the prompt's shape: `{severity:"error"|"warning", code:string, message:s
 }
 ```
 
-`outputs` values are typed at the port level; the editor reads them as `unknown` and renders by `NodeTypeDescription` output port type. Single-tick consumption is the v1 target; multi-tick browsing is a Phase-4 stretch goal.
+The editor reads `outputs` values as `unknown` and renders them by `NodeTypeDescription` output port type. Single-tick consumption is the v1 target; multi-tick browsing is a Phase-4 stretch goal.
 
 ### 6.5 Legacy JSON (read-only)
 
@@ -125,7 +127,7 @@ Defined in `src/registry/builtIns.ts`. The registry is extensible (a future `reg
 
 Errors: duplicate node IDs · missing node IDs · unknown node type · missing required parameter · parameter type mismatch · invalid frequency (non-positive) · frequency for missing node · duplicate edge ID · missing source node · missing target node · invalid source output port · invalid target input port · port type mismatch (when both ports declare types) · self-loop · cycle.
 
-Warnings: isolated node · unconnected required input port.
+Warnings: isolated node (no edges in or out) · unconnected input port. The runtime requires every declared input to be present at `compute()` time, so any declared input on a non-isolated node with no incoming edge produces a warning. The `NodeTypeDescription` `inputs` list has no per-input `required` flag (the prompt's shape only carries `required` on parameters); all declared inputs are treated as required by this rule.
 
 Triggers: on document load · live on edit, debounced 200 ms · before save (warn but allow) · before runtime-bound-JSON export (block on any error).
 

@@ -2,8 +2,8 @@
 
 > Active checklist. Update each session. Source of truth for the next concrete action.
 
-**Active phase:** Phase 2 — Minimal Visual Editor.
-**Next phase on close:** Phase 3 — n8n-inspired UX.
+**Active phase:** Phase 3 — n8n-inspired UX.
+**Next phase on close:** Phase 4 — Run-Result Import & Observability.
 
 ---
 
@@ -47,19 +47,19 @@ Prerequisite: upgrade Node to 22 LTS on dev machine; `corepack enable && corepac
 
 ## Phase 2 — Minimal Visual Editor
 
-- [ ] `src/main.ts`, `src/App.vue` — Vite entry, Element Plus + lucide registration.
-- [ ] `src/editor/stores/documentStore.ts` — Pinia store wrapping `GraphDocument`.
-- [ ] `src/editor/stores/editorStore.ts` — selection, viewport, dirty flag.
-- [ ] `src/editor/components/CanvasView.vue` — VueFlow canvas with custom node template.
-- [ ] `src/editor/components/CustomNode.vue` — renders typed handles from `NodeTypeDescription`.
-- [ ] `src/editor/components/Palette.vue` — categorised node list, click or drag to add.
-- [ ] `src/editor/components/PropertyPanel.vue` — at minimum, edits `Constant.value`.
-- [ ] `src/editor/components/TopBar.vue` — New, Open, Save, Save As.
-- [ ] `src/editor/composables/useCanvasOperations.ts` — add/move/connect/delete primitives.
-- [ ] `src/editor/composables/useFileIO.ts` — download save, file-picker load (with Zod parse).
-- [ ] Connection validation: reject edges that violate `NodeTypeDescription` port-type rules.
-- [ ] Playwright e2e: build simple-add graph from blank canvas, save, reload, document equal.
-- [ ] Tag `phase-2-complete`, update `CHANGELOG.md`.
+- [x] `src/main.ts`, `src/App.vue` — Vite entry, Element Plus + lucide registration.
+- [x] `src/editor/stores/documentStore.ts` — Pinia store wrapping `GraphDocument`.
+- [x] `src/editor/stores/editorStore.ts` — selection, viewport, dirty flag.
+- [x] `src/editor/components/CanvasView.vue` — VueFlow canvas with custom node template.
+- [x] `src/editor/components/CustomNode.vue` — renders typed handles from `NodeTypeDescription`.
+- [x] `src/editor/components/Palette.vue` — categorised node list, click or drag to add. *(Click-to-add only in Phase 2; drag-to-add is a Phase-3 enhancement.)*
+- [x] `src/editor/components/PropertyPanel.vue` — at minimum, edits `Constant.value`.
+- [x] `src/editor/components/TopBar.vue` — New, Open, Save, Save As.
+- [x] `src/editor/composables/useCanvasOperations.ts` — add/move/connect/delete primitives.
+- [x] `src/editor/composables/useFileIO.ts` — download save, file-picker load (with Zod parse).
+- [x] Connection validation: reject edges that violate `NodeTypeDescription` port-type rules. *(`src/editor/canConnect.ts`; called by `useCanvasOperations.connect`.)*
+- [x] Playwright e2e: build simple-add graph from blank canvas, save, reload, document equal. *(Smoke flow + Save-download in `tests/e2e/editor.spec.ts`; full build-and-round-trip in `tests/unit/editor/composables/useFileIO.test.ts` under happy-dom — drag-to-connect via Playwright handles is empirically fragile.)*
+- [x] Tag `phase-2-complete`, update `CHANGELOG.md`.
 
 ## Phase 3 — n8n-inspired UX
 

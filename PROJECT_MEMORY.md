@@ -10,7 +10,7 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 ## Current phase
 
-**Phase 1 — Schema & Runtime Adapter complete** (tag `phase-1-complete` on `phase-1-schema-and-adapter`; 19 Vitest files / 132 tests green). Resumption point: **Phase 2 — Minimal Visual Editor**, starting from `src/main.ts` / `src/App.vue` and the Vite + Element Plus + lucide-vue-next entry.
+**Phase 2 — Minimal Visual Editor complete** (tag `phase-2-complete` on `phase-2-visual-editor`; 24 Vitest files / 168 tests + 3 Playwright e2e cases all green). Resumption point: **Phase 3 — n8n-inspired UX** (history/undo, clipboard, search-driven palette, ValidationPanel, debounced live validation, auto-layout via Dagre, keyboard shortcuts).
 
 ## Tech stack (locked Phase 0)
 
@@ -103,6 +103,17 @@ Pure functions in `document`, `registry`, `serializer`, `validator`, `compiler` 
 - All four `pnpm` verifications (test/lint/format:check/typecheck) exit 0 at HEAD of the feature branch.
 - No CI yet (Plan Task 22 will add it).
 - TS-type assertion gotcha: `tsconfig.json#include` only covers `src/**/*`, `tests/**/*`, and `vitest.config.ts`. Any throwaway probe file used to verify a type narrows correctly **must** live inside `src/` or `tests/`; a probe at the repo root is silently ignored by `tsc` and produces a false-positive "passes" signal.
+
+## Environment notes (Phase 2 — toolchain extended 2026-05-01)
+
+- Runtime stack added: vue 3.5.33, pinia 3.0.4, element-plus 2.13.7, lucide-vue-next 1.0.0, @vue-flow/{core,background,controls,minimap,node-resizer} 1.x.
+- Dev tooling added: vite 8.0.10 (rolldown), @vitejs/plugin-vue 6.0.6, vue-tsc 3.2.7, @vue/test-utils 2.4.10, happy-dom 20.9.0, @playwright/test, eslint-plugin-vue 10.9.0, vue-eslint-parser 10.4.0.
+- `package.json` scripts: `dev` (vite), `build` (`vue-tsc -b && vite build`), `preview`, `e2e` (playwright test), `e2e:ui`. `typecheck` switched from `tsc --noEmit` to `vue-tsc --noEmit` to handle `.vue` SFCs.
+- `tsconfig.json`: `lib` extended with `DOM`, `DOM.Iterable`; `jsx: "preserve"`; `types += vite/client`; `include` extended with `src/**/*.vue` and `vite.config.ts`. `*.tsbuildinfo` is gitignored; vue-tsc's `-b` flag produces it during `pnpm build`.
+- ESLint .vue branch uses `vue-eslint-parser` with `parser: tseslint.parser` for `<script lang="ts">`. Layout rules (`singleline-html-element-content-newline`, `multiline-html-element-content-newline`, `max-attributes-per-line`, `html-self-closing`, `html-closing-bracket-newline`, `first-attribute-linebreak`, `html-indent`) are off so Prettier owns formatting; `vue/multi-word-component-names` is off because `Palette` / `TopBar` do not collide with native HTML elements.
+- Drag-to-connect through VueFlow handles is empirically fragile via Playwright mouse events; the e2e cases stay smoke-level and the full build-and-round-trip lives in a happy-dom Vitest case using `useCanvasOperations.connect()` directly.
+- Production bundle is a single ~1.25 MB chunk (Element Plus + VueFlow eager-loaded). Code-splitting is a Phase-3 task; the Vite warning is expected for now.
+- Playwright browsers: only chromium installed (`pnpm exec playwright install chromium`). CI installs with `--with-deps`.
 
 ## Contributor identity
 

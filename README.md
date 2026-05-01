@@ -4,7 +4,7 @@ A web-based graph editor for an external C++ DAG runtime, adapted from n8n's edi
 
 ## Status
 
-**Phase 0 — Analysis & Decision** (closing). See `PLAN.md` for the active checklist and `PROJECT_MEMORY.md` for architecture state.
+**Phases 0–4 complete** (tags `phase-1-complete`…`phase-4-complete` on `master`). See `PLAN.md` Backlog for unscoped follow-ups and `PROJECT_MEMORY.md` for architecture state.
 
 ## Stack
 
@@ -37,7 +37,17 @@ pnpm e2e            # playwright
 # production build
 pnpm build
 pnpm preview
+
+# headless CLI (validator + compiler + roundtrip)
+pnpm cli validate fixtures/legacy/simple-add.json
+pnpm cli compile  fixtures/legacy/simple-add.json --out runtime.json
+pnpm cli roundtrip fixtures/legacy/simple-add.json --pretty
 ```
+
+The CLI accepts both legacy and versioned graph JSON. Exit codes: `0`
+success, `1` validation/compile errors, `2` bad invocation. `validate
+--json` emits the `Diagnostic[]` machine-readable. After `pnpm install`,
+the binary is also reachable as `vizgraph` via the `bin` shim.
 
 ## Repository layout
 

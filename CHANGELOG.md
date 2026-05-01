@@ -4,6 +4,14 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Backlog: headless CLI (2026-05-02)
+- `src/cli/index.ts`: `validate` / `compile` / `roundtrip` subcommands plus `help`. Loads either legacy or versioned JSON via the existing `serializer/index.loadGraph` dispatch. Exit codes 0 / 1 / 2 (success / errors found / bad invocation). `validate --json` emits the `Diagnostic[]` machine-readable; `validate --warnings-as-errors` upgrades warnings; `compile [--out path] [--pretty]` writes runtime-bound JSON; `roundtrip [--pretty]` canonicalises legacy → versioned.
+- `bin/vizgraph.mjs`: shim that re-exec's the TS entry through `tsx`, so `pnpm install` exposes a `vizgraph` binary without a separate build step. `pnpm cli ...` is the dev-time equivalent.
+- New devDep: `tsx`.
+- Tests: 1 new Vitest file / 15 cases covering help, unknown command, validate (clean / missing file / bad JSON / schema-fail / errors found / `--json` / `--warnings-as-errors`), compile (stdout / `--out` / abort-on-validation-errors / missing `--out` arg), roundtrip. Total: 32 Vitest files / 217 cases.
+- ESLint: ignore `bin/**` (the `.mjs` shim is not in the TS project, so type-aware rules can't lint it).
+- README: surfaced the CLI commands and exit-code contract.
+
 ### Phase 4 — Run-Result Import & Observability (complete, 2026-05-01, tag `phase-4-complete`)
 - `src/document/runresult.ts`: `RunResultSchema` / `RunResultTickSchema` / `RunResultNodeSchema` and inferred TS types matching spec section 6.4. version literal 1, graph_id nullable, ticks min(1), per-node outputs as record<string, unknown>, duration_ns nonnegative, error nullable string.
 - `src/editor/stores/executionStore.ts`: holds the imported `RunResult`, current `tickIndex`, `mode` ("edit" | "inspect"), with computed `ticks` / `tickCount` / `currentTick` / `overlayByNodeId`. `setResult` flips mode to inspect and resets tickIndex; `clearResult` resets mode and tick state; `setTickIndex` is bounds-checked; `toggleMode` flips edit/inspect.

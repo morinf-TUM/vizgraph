@@ -5,7 +5,7 @@ import vueParser from "vue-eslint-parser";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "coverage/**", "node_modules/**", "*.config.js", "*.config.ts"],
+    ignores: ["dist/**", "coverage/**", "node_modules/**", "*.config.js", "*.config.ts", "bin/**"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

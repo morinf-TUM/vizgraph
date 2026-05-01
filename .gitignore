@@ -31,6 +31,7 @@ yarn-debug.log*
 .env
 .env.local
 .env.*.local
+.git-token
 
 # Lockfiles for non-pnpm package managers (pnpm-lock.yaml is committed)
 package-lock.json

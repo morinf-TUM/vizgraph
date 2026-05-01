@@ -2,8 +2,8 @@
 
 > Active checklist. Update each session. Source of truth for the next concrete action.
 
-**Active phase:** Phase 4 — Run-Result Import & Observability.
-**Next phase on close:** Backlog (post-Phase-4 ideas, none committed).
+**Active phase:** Backlog (post-Phase-4 ideas, none committed). All four committed phases complete.
+**Next phase on close:** N/A — see Backlog section for unscoped follow-ups.
 
 ---
 
@@ -78,14 +78,14 @@ Prerequisite: upgrade Node to 22 LTS on dev machine; `corepack enable && corepac
 
 ## Phase 4 — Run-Result Import & Observability
 
-- [ ] `src/document/runresult.ts` — `RunResult` type and Zod schema.
-- [ ] `src/editor/stores/executionStore.ts` — current run-result, current tick, overlay map.
-- [ ] `src/editor/components/CustomNode.vue` — overlay rendering (output values, duration, error).
-- [ ] Mode toggle in TopBar (Edit ↔ Inspect).
-- [ ] `src/editor/composables/useRunResultImport.ts` — file picker + Zod parse + bind to graph.
-- [ ] Multi-tick browsing (stretch): tick slider in TopBar.
-- [ ] Playwright e2e: import sample run-result, verify overlay values, toggle mode, verify clean state.
-- [ ] Tag `phase-4-complete`, update `CHANGELOG.md`.
+- [x] `src/document/runresult.ts` — `RunResult` type and Zod schema.
+- [x] `src/editor/stores/executionStore.ts` — current run-result, current tick, overlay map.
+- [x] `src/editor/components/CustomNode.vue` — overlay rendering (output values, duration, error).
+- [x] Mode toggle in TopBar (Edit ↔ Inspect).
+- [x] `src/editor/composables/useRunResultImport.ts` — file picker + Zod parse + bind to graph.
+- [x] Multi-tick browsing (stretch): tick slider in TopBar. *(Implemented as ◀ / tick i / N ▶ buttons rather than a slider — same UX, one less Element-Plus component.)*
+- [x] Playwright e2e: import sample run-result, verify overlay values, toggle mode, verify clean state.
+- [x] Tag `phase-4-complete`, update `CHANGELOG.md`.
 
 ## Cross-cutting / continuous
 

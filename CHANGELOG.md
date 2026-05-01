@@ -4,6 +4,16 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Phase 4 — Run-Result Import & Observability (complete, 2026-05-01, tag `phase-4-complete`)
+- `src/document/runresult.ts`: `RunResultSchema` / `RunResultTickSchema` / `RunResultNodeSchema` and inferred TS types matching spec section 6.4. version literal 1, graph_id nullable, ticks min(1), per-node outputs as record<string, unknown>, duration_ns nonnegative, error nullable string.
+- `src/editor/stores/executionStore.ts`: holds the imported `RunResult`, current `tickIndex`, `mode` ("edit" | "inspect"), with computed `ticks` / `tickCount` / `currentTick` / `overlayByNodeId`. `setResult` flips mode to inspect and resets tickIndex; `clearResult` resets mode and tick state; `setTickIndex` is bounds-checked; `toggleMode` flips edit/inspect.
+- `src/editor/composables/useRunResultImport.ts`: file -> JSON -> `RunResultSchema.safeParse` -> `executionStore.setResult`, with error paths for read / parse / schema failures.
+- `src/editor/components/CustomNode.vue`: in inspect mode, renders per-output-port values from the overlay map next to each handle; shows duration in the footer or the runtime error string when present (errored nodes get a red border).
+- `src/editor/components/TopBar.vue`: edit/inspect mode badge, Import RunResult / Inspect-mode toggle / Clear run buttons, and optional tick navigation (◀ / tick i / N ▶) when `tickCount > 1`. Hidden second file input for the run-result picker.
+- `useFileIO.open()` also clears any active run result so stale overlays don't carry across graph swaps.
+- Fixture: `fixtures/run-results/simple-add.json` (single tick, sum=5, durations populated).
+- Tests: 2 new Vitest files / 13 cases — RunResultSchema (7 cases), executionStore (6 cases). 1 new Playwright case — load the simple-add document via the Open file input, import the run-result fixture, assert `overlay-3-sum` text "5", toggle back to edit mode, assert overlays disappear. Total: 31 Vitest files / 202 cases + 6 Playwright cases.
+
 ### Phase 3 — n8n-inspired UX (complete, 2026-05-01, tag `phase-3-complete`)
 - Undo/redo via the snapshot/memento variant of ADR-0004: `src/editor/stores/historyStore.ts` exposes `transact(label, fn)`, `undo()`, `redo()`, `clear()`. Bounded at MAX_DEPTH=100. Every `useCanvasOperations` call wraps its mutation in a single transaction so Ctrl+Z reverts a single user action atomically (including the cascade-prune from `removeNode` and multi-target `removeSelected`).
 - `src/editor/composables/useUndo.ts`: thin façade for the shortcut/UI layer.

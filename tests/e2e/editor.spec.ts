@@ -134,7 +134,11 @@ test("import RunResult: overlays render in inspect mode and clear when toggled",
   });
   await page
     .getByTestId("topbar-file-input")
-    .setInputFiles({ name: "graph.json", mimeType: "application/json", buffer: Buffer.from(graphJson) });
+    .setInputFiles({
+      name: "graph.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(graphJson),
+    });
   await expect(page.locator(".vue-flow__node-custom")).toHaveCount(4);
 
   // Mode starts as edit; toggle is disabled until a RunResult is imported.
@@ -159,13 +163,11 @@ test("import RunResult: overlays render in inspect mode and clear when toggled",
       },
     ],
   });
-  await page
-    .getByTestId("topbar-runresult-input")
-    .setInputFiles({
-      name: "run.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(runResultJson),
-    });
+  await page.getByTestId("topbar-runresult-input").setInputFiles({
+    name: "run.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(runResultJson),
+  });
 
   // Mode should now be inspect and the Add node's sum overlay should show 5.
   await expect(page.getByTestId("top-bar-mode")).toHaveText("inspect");

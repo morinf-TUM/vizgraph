@@ -10,7 +10,7 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 ## Current phase
 
-**Phase 3 — n8n-inspired UX complete** (tag `phase-3-complete` on `phase-3-ux`; 29 Vitest files / 189 tests + 5 Playwright e2e cases all green). Resumption point: **Phase 4 — Run-Result Import & Observability** (`src/document/runresult.ts`, `executionStore`, overlay rendering on `CustomNode.vue`, Edit↔Inspect mode toggle, `useRunResultImport` file picker, optional multi-tick slider).
+**Phase 4 — Run-Result Import & Observability complete** (tag `phase-4-complete` on `phase-4-runresult`; 31 Vitest files / 202 tests + 6 Playwright e2e cases all green). All four committed phases complete. Resumption point: **Backlog** (`PLAN.md` lines 99–106) — plugin/external node-type registration, headless validation/compilation CLI, theming + accessibility audit, sub-graphs/grouping, comments/annotations. None of these is committed; pick one when restarting.
 
 ## Tech stack (locked Phase 0)
 

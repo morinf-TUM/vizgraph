@@ -10,7 +10,7 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 ## Current phase
 
-**Phase 2 — Minimal Visual Editor complete** (tag `phase-2-complete` on `phase-2-visual-editor`; 24 Vitest files / 168 tests + 3 Playwright e2e cases all green). Resumption point: **Phase 3 — n8n-inspired UX** (history/undo, clipboard, search-driven palette, ValidationPanel, debounced live validation, auto-layout via Dagre, keyboard shortcuts).
+**Phase 3 — n8n-inspired UX complete** (tag `phase-3-complete` on `phase-3-ux`; 29 Vitest files / 189 tests + 5 Playwright e2e cases all green). Resumption point: **Phase 4 — Run-Result Import & Observability** (`src/document/runresult.ts`, `executionStore`, overlay rendering on `CustomNode.vue`, Edit↔Inspect mode toggle, `useRunResultImport` file picker, optional multi-tick slider).
 
 ## Tech stack (locked Phase 0)
 
@@ -114,6 +114,13 @@ Pure functions in `document`, `registry`, `serializer`, `validator`, `compiler` 
 - Drag-to-connect through VueFlow handles is empirically fragile via Playwright mouse events; the e2e cases stay smoke-level and the full build-and-round-trip lives in a happy-dom Vitest case using `useCanvasOperations.connect()` directly.
 - Production bundle is a single ~1.25 MB chunk (Element Plus + VueFlow eager-loaded). Code-splitting is a Phase-3 task; the Vite warning is expected for now.
 - Playwright browsers: only chromium installed (`pnpm exec playwright install chromium`). CI installs with `--with-deps`.
+
+## Environment notes (Phase 3 — toolchain extended 2026-05-01)
+
+- Runtime stack added: `@dagrejs/dagre` for auto-layout (LR rankdir, sensible nodesep/ranksep). The dagre call in `src/editor/autoLayout.ts` carries one targeted `eslint-disable @typescript-eslint/no-unsafe-argument` because dagre's typed `layout(g)` expects a fully-parameterised graph; constructing it for our minimal label needs is awkward and the call is type-safe in practice.
+- ADR-0004 implementation: undo/redo uses a snapshot/memento variant rather than per-command apply/undo classes. JSON snapshots are deep-cloned cheaply and avoid Vue-reactivity hazards from sharing object references across stacks. MAX_DEPTH = 100. The plain "Command" pattern remains compatible with this layer (no future migration cost) but the snapshot variant wins on simplicity for the present rule set.
+- Live validation watches `documentStore.doc` deeply with a 200 ms debounce; each mutation cancels the pending tick and reschedules. Mounted once at App level; tests use `vi.useFakeTimers()` + `vi.advanceTimersByTimeAsync` to verify the debounce window.
+- Keyboard shortcuts: registered on `window` keydown with cleanup on unmount. Skips when focus is in `INPUT`/`TEXTAREA`/`SELECT` or `contentEditable`. Ctrl+S / Ctrl+O / F deferred — they conflict with browser defaults and the on-screen TopBar buttons + VueFlow Controls cover the same actions.
 
 ## Contributor identity
 

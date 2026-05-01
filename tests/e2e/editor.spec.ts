@@ -83,7 +83,5 @@ test("validation panel surfaces missing_required_parameter for a fresh Constant"
   // Number.isFinite passes; "" yields NaN -> handler returns early, parameter
   // stays at 0). To get a real diagnostic, target an isolated-node warning
   // instead, which fires for any Constant with no edges.
-  await expect(
-    page.getByTestId("validation-warning-isolated_node"),
-  ).toBeVisible();
+  await expect(page.getByTestId("validation-warning-isolated_node")).toBeVisible();
 });

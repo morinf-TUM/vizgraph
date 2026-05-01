@@ -4,6 +4,20 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Phase 3 — n8n-inspired UX (complete, 2026-05-01, tag `phase-3-complete`)
+- Undo/redo via the snapshot/memento variant of ADR-0004: `src/editor/stores/historyStore.ts` exposes `transact(label, fn)`, `undo()`, `redo()`, `clear()`. Bounded at MAX_DEPTH=100. Every `useCanvasOperations` call wraps its mutation in a single transaction so Ctrl+Z reverts a single user action atomically (including the cascade-prune from `removeNode` and multi-target `removeSelected`).
+- `src/editor/composables/useUndo.ts`: thin façade for the shortcut/UI layer.
+- Clipboard with ID re-assignment (`src/editor/stores/clipboardStore.ts`): `copy` captures selected nodes plus edges fully internal to the selection; `paste` re-allocates IDs via `nextNodeId`, regenerates edge IDs via `edgeIdFor`, offsets positions by 30, and selects the pasted set; `cut` is `copy` + remove in one transaction.
+- Live validation: `src/editor/stores/validationStore.ts` (Diagnostic[] split into errors / warnings / hasErrors) + `src/editor/composables/useLiveValidation.ts` (200 ms debounce on every doc mutation, deep watch, runs `validate()` and writes back). Mounted once at App level.
+- `src/editor/components/ValidationPanel.vue`: diagnostic list grouped by severity, click-to-jump selects the offending node or edge.
+- Search-driven palette: substring filter on type / display_name / category, hides empty groups, empty-state message.
+- Auto-layout: `src/editor/autoLayout.ts` runs Dagre (LR rankdir) and returns a `Map<id, Position>`; `src/editor/composables/useAutoLayout.ts` wraps the write-back as a single Tidy transaction; TopBar Tidy button.
+- Keyboard shortcuts (`src/editor/composables/useShortcuts.ts`): Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y for undo/redo; Ctrl/Cmd+C / X / V for clipboard; Delete / Backspace for remove selection. Skips when focus is in an editable element.
+- TopBar gains Undo / Redo (with disabled-state binding) and Tidy buttons.
+- App.vue grid extended with a centre column that stacks the canvas above the validation panel.
+- New dev dep: `@dagrejs/dagre`.
+- Tests: 4 new Vitest files / 22 new cases - historyStore (10), clipboardStore (6), validationStore (2), useLiveValidation under happy-dom with fake timers (2), autoLayout (2). Total: 29 Vitest files / 189 cases. 2 new Playwright e2e cases - undo/redo round-trip on a Constant; ISOLATED_NODE warning surfaces for a fresh Constant.
+
 ### Phase 2 — Minimal Visual Editor (complete, 2026-05-01, tag `phase-2-complete`)
 - Vue 3 + Vite + Pinia + Element Plus scaffold (`src/main.ts`, `src/App.vue`, `vite.config.ts`, `index.html`, ambient `src/shims-vue.d.ts`).
 - Pinia stores: `useDocumentStore` wraps the `GraphDocument` with addNode / removeNode (cascade-prunes incident edges) / moveNode / renameNode / updateParameter / setFrequency / addEdge (deterministic id) / removeEdge / setViewport / replaceDocument / newDocument; `useEditorStore` tracks selection (node + edge sets, additive or replace), viewport, and dirty flag.

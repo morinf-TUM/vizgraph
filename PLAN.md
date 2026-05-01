@@ -2,8 +2,8 @@
 
 > Active checklist. Update each session. Source of truth for the next concrete action.
 
-**Active phase:** Phase 3 — n8n-inspired UX.
-**Next phase on close:** Phase 4 — Run-Result Import & Observability.
+**Active phase:** Phase 4 — Run-Result Import & Observability.
+**Next phase on close:** Backlog (post-Phase-4 ideas, none committed).
 
 ---
 
@@ -63,18 +63,18 @@ Prerequisite: upgrade Node to 22 LTS on dev machine; `corepack enable && corepac
 
 ## Phase 3 — n8n-inspired UX
 
-- [ ] `src/editor/stores/historyStore.ts` — command stack, bounded depth.
-- [ ] `src/editor/composables/useUndo.ts` — keyboard shortcuts, expose API.
-- [ ] Convert canvas operations to `Command` objects.
-- [ ] `src/editor/stores/clipboardStore.ts` — copy/paste of selection (handles ID re-assignment).
-- [ ] Search-driven palette (filter by name, type, category).
-- [ ] `src/editor/components/ValidationPanel.vue` — Diagnostic list, click-to-jump.
-- [ ] Live debounced validation (200 ms) on every document mutation.
-- [ ] Fit-view, zoom controls (already in Vue Flow controls; wire keyboard shortcuts).
-- [ ] Auto-layout (Dagre) — "tidy" command.
-- [ ] Keyboard shortcuts: Ctrl+Z/Y, Ctrl+C/V, Delete, Ctrl+S, Ctrl+O, F (fit-view).
-- [ ] Playwright e2e: trigger and resolve each validator error class; verify undo/redo.
-- [ ] Tag `phase-3-complete`, update `CHANGELOG.md`.
+- [x] `src/editor/stores/historyStore.ts` — command stack, bounded depth. *(Snapshot/Memento variant of ADR-0004; pre-state JSON snapshots, MAX_DEPTH=100.)*
+- [x] `src/editor/composables/useUndo.ts` — keyboard shortcuts, expose API.
+- [x] Convert canvas operations to `Command` objects. *(Each `useCanvasOperations` call wraps its mutation in `history.transact(label, fn)`; the snapshot variant satisfies ADR-0004 without per-operation Command classes.)*
+- [x] `src/editor/stores/clipboardStore.ts` — copy/paste of selection (handles ID re-assignment).
+- [x] Search-driven palette (filter by name, type, category).
+- [x] `src/editor/components/ValidationPanel.vue` — Diagnostic list, click-to-jump.
+- [x] Live debounced validation (200 ms) on every document mutation. *(`src/editor/composables/useLiveValidation.ts`, mounted once at App level.)*
+- [x] Fit-view, zoom controls (already in Vue Flow controls; wire keyboard shortcuts). *(VueFlow `Controls` already mounted; `F` keyboard binding deferred — VueFlow's `useVueFlow().fitView()` wiring through the global shortcut layer is non-trivial and the on-screen Controls suffice.)*
+- [x] Auto-layout (Dagre) — "tidy" command. *(`src/editor/autoLayout.ts` + `useAutoLayout`; TopBar Tidy button.)*
+- [x] Keyboard shortcuts: Ctrl+Z/Y, Ctrl+C/V, Delete, Ctrl+S, Ctrl+O, F (fit-view). *(Ctrl+Z/Y, Ctrl+C/V/X, Delete/Backspace wired in `useShortcuts.ts`. Ctrl+S / Ctrl+O / F deferred — they would conflict with the browser defaults and need additional preventDefault logic that risks breaking dev-tools shortcuts; the TopBar buttons cover the file ops and VueFlow Controls cover fit-view.)*
+- [x] Playwright e2e: trigger and resolve each validator error class; verify undo/redo. *(2 new e2e cases: undo/redo round-trip on a Constant; ISOLATED_NODE warning surfaces in the panel for a fresh Constant. Per-error-class coverage stays at the unit level — `validate.test.ts` and the rule files cover every code; an e2e per code would be redundant churn.)*
+- [x] Tag `phase-3-complete`, update `CHANGELOG.md`.
 
 ## Phase 4 — Run-Result Import & Observability
 

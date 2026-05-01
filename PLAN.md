@@ -2,8 +2,8 @@
 
 > Active checklist. Update each session. Source of truth for the next concrete action.
 
-**Active phase:** Phase 0 — Analysis & Decision (closing this session).
-**Next phase on close:** Phase 1 — Schema & Runtime Adapter.
+**Active phase:** Phase 2 — Minimal Visual Editor.
+**Next phase on close:** Phase 3 — n8n-inspired UX.
 
 ---
 
@@ -25,25 +25,25 @@
 Prerequisite: upgrade Node to 22 LTS on dev machine; `corepack enable && corepack use pnpm@latest-10`.
 
 - [x] Scaffold project: `pnpm init`, install deps, configure TS strict, ESLint, Prettier, Vitest, Vite. *(Plan Task 1 complete on `phase-1-schema-and-adapter` — six commits: `fc764de` initial configs, `1fb6251` flat-ESLint + verified pins, `f88d675` packageManager fully-qualified pin, `3d7cb92` install + smoke test + verify. Toolchain green: `pnpm test/lint/format:check/typecheck` all exit 0. Spec ✅, code-quality ✅.)*
-- [ ] `src/document/types.ts` — `GraphDocument`, `Node`, `Edge`, `Viewport` types and Zod schemas.
-- [ ] `src/document/ids.ts` — node-ID and edge-ID allocators (deterministic, monotonic).
-- [ ] `src/registry/types.ts` — `NodeTypeDescription` Zod schema and TS type.
-- [ ] `src/registry/builtIns.ts` — `Constant`, `Add`, `Print` definitions.
-- [ ] `src/registry/registry.ts` — registry API (`get(type)`, `all()`, `register()` internal-only).
-- [ ] `src/serializer/legacy.ts` — read-only legacy loader → `GraphDocument`.
-- [ ] `src/serializer/versioned.ts` — versioned load/save round-trip.
-- [ ] `src/serializer/index.ts` — auto-detect legacy vs versioned.
-- [ ] `src/validator/diagnostics.ts` — `Diagnostic` type, code constants.
-- [ ] `src/validator/rules/*.ts` — one file per rule class (ids, edges, ports, params, freq, cycles, warnings).
-- [ ] `src/validator/validate.ts` — orchestrator returning `Diagnostic[]`.
-- [ ] `src/compiler/compile.ts` — `GraphDocument` → runtime-bound JSON.
-- [ ] `fixtures/legacy/simple-add.json` — from prompt §"Simple Add Graph".
-- [ ] `fixtures/legacy/parallel-add.json` — from prompt §"Parallel Add Graph".
-- [ ] `fixtures/versioned/simple-add.json` — round-trip target.
-- [ ] Unit tests: every "Suggested Validation Test" from the prompt as a Vitest case.
-- [ ] Unit tests: legacy → versioned round-trip preserves IDs, names, parameters, edge endpoints, positions.
-- [ ] CI: GitHub Actions workflow (lint + typecheck + vitest + build).
-- [ ] Tag `phase-1-complete`, update `CHANGELOG.md`.
+- [x] `src/document/types.ts` — `GraphDocument`, `Node`, `Edge`, `Viewport` types and Zod schemas.
+- [x] `src/document/ids.ts` — node-ID and edge-ID allocators (deterministic, monotonic).
+- [x] `src/registry/types.ts` — `NodeTypeDescription` Zod schema and TS type.
+- [x] `src/registry/builtIns.ts` — `Constant`, `Add`, `Print` definitions.
+- [x] `src/registry/registry.ts` — registry API (`get(type)`, `all()`, `register()` internal-only).
+- [x] `src/serializer/legacy.ts` — read-only legacy loader → `GraphDocument`.
+- [x] `src/serializer/versioned.ts` — versioned load/save round-trip.
+- [x] `src/serializer/index.ts` — auto-detect legacy vs versioned.
+- [x] `src/validator/diagnostics.ts` — `Diagnostic` type, code constants.
+- [x] `src/validator/rules/*.ts` — one file per rule class (ids, edges, ports, params, freq, cycles, warnings). *(`CODES.FREQUENCY_FOR_MISSING_NODE` reserved-but-not-implemented; current schema keeps `frequency_hz` on the node so the code is unreachable. Documented in the freq.ts header.)*
+- [x] `src/validator/validate.ts` — orchestrator returning `Diagnostic[]`.
+- [x] `src/compiler/compile.ts` — `GraphDocument` → runtime-bound JSON. *(Output is legacy JSON + optional `frequency_hz` per node; throws on Constant invariant violations as belt-and-suspenders for callers that bypass `validate()`.)*
+- [x] `fixtures/legacy/simple-add.json` — from prompt §"Simple Add Graph".
+- [x] `fixtures/legacy/parallel-add.json` — from prompt §"Parallel Add Graph".
+- [x] `fixtures/versioned/simple-add.json` — round-trip target. *(Matches the legacy-loader output: `x = idx * 200`, edge ids via `e<src>_<srcPort>__<dst>_<dstPort>`.)*
+- [x] Unit tests: every "Suggested Validation Test" from the prompt as a Vitest case. *(C++ execution tests are out-of-repo; all editor-side validator cases covered across `ids/edges/ports/params/freq/cycles/warnings` + `validate.test.ts` + `fixtures.test.ts`.)*
+- [x] Unit tests: legacy → versioned round-trip preserves IDs, names, parameters, edge endpoints, positions. *(`tests/unit/fixtures.test.ts`.)*
+- [x] CI: GitHub Actions workflow (lint + typecheck + vitest + build). *(Build step deferred to Phase 2 — no Vite build configured yet.)*
+- [x] Tag `phase-1-complete`, update `CHANGELOG.md`.
 
 ## Phase 2 — Minimal Visual Editor
 

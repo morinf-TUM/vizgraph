@@ -10,7 +10,7 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 ## Current phase
 
-**Phase 1 — Schema & Runtime Adapter** (Plan Tasks 1–10 complete; Plan Task 11 — `src/validator/rules/*.ts` — is the resumption point). Toolchain verified end-to-end on `phase-1-schema-and-adapter` branch.
+**Phase 1 — Schema & Runtime Adapter complete** (tag `phase-1-complete` on `phase-1-schema-and-adapter`; 19 Vitest files / 132 tests green). Resumption point: **Phase 2 — Minimal Visual Editor**, starting from `src/main.ts` / `src/App.vue` and the Vite + Element Plus + lucide-vue-next entry.
 
 ## Tech stack (locked Phase 0)
 

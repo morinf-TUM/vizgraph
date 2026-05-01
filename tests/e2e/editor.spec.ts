@@ -65,6 +65,27 @@ test("undo / redo: adding a node, undoing, and redoing reflects in the canvas", 
   await expect(page.locator(".vue-flow__node-custom")).toHaveCount(1);
 });
 
+test("Comment button adds a comment to the canvas and persists it on save", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("topbar-add-comment").click();
+  // The comment renders as a VueFlow node with our CommentNode template.
+  await expect(page.locator(".vue-flow__node-comment")).toHaveCount(1);
+  await expect(page.getByTestId("comment-text-c1")).toContainText("New comment");
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByTestId("topbar-save").click();
+  const download = await downloadPromise;
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(chunk as Buffer);
+  const parsed = JSON.parse(Buffer.concat(chunks).toString("utf8")) as {
+    graph: { comments: Array<{ id: string; text: string }> };
+  };
+  expect(parsed.graph.comments).toHaveLength(1);
+  expect(parsed.graph.comments[0]?.id).toBe("c1");
+  expect(parsed.graph.comments[0]?.text).toBe("New comment");
+});
+
 test("Ctrl+S keyboard shortcut triggers a download", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("palette-Constant").click();

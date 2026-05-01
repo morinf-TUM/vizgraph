@@ -15,6 +15,7 @@ const doc: GraphDocument = {
       },
     ],
     edges: [],
+    comments: [],
   },
 };
 

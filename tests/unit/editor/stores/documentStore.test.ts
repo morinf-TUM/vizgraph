@@ -128,6 +128,7 @@ describe("documentStore", () => {
       graph: {
         nodes: [{ id: 9, type: "Constant", position: { x: 0, y: 0 }, parameters: { value: 1 } }],
         edges: [],
+        comments: [],
       },
     });
     expect(store.nodes).toHaveLength(1);
@@ -140,5 +141,44 @@ describe("documentStore", () => {
     store.newDocument();
     expect(store.nodes).toEqual([]);
     expect(store.edges).toEqual([]);
+    expect(store.comments).toEqual([]);
+  });
+
+  it("addComment allocates monotonic c1, c2, ... ids and pushes the comment", () => {
+    const store = useDocumentStore();
+    const a = store.addComment({ text: "hi", position: { x: 0, y: 0 } });
+    const b = store.addComment({ text: "again", position: { x: 100, y: 0 } });
+    expect(a.id).toBe("c1");
+    expect(b.id).toBe("c2");
+    expect(store.comments).toHaveLength(2);
+  });
+
+  it("addComment after a delete reissues the freed id (id allocator scans the live array's max)", () => {
+    const store = useDocumentStore();
+    store.addComment({ text: "a", position: { x: 0, y: 0 } });
+    const b = store.addComment({ text: "b", position: { x: 0, y: 0 } });
+    store.removeComment(b.id);
+    const c = store.addComment({ text: "c", position: { x: 0, y: 0 } });
+    // Comment ids are editor-internal (not referenced by external systems)
+    // and we deliberately don't carry a monotonic counter on the schema —
+    // re-using the freed slot is fine in practice.
+    expect(c.id).toBe("c2");
+  });
+
+  it("moveComment updates position, updateComment patches text/size/color", () => {
+    const store = useDocumentStore();
+    const c = store.addComment({ text: "hi", position: { x: 0, y: 0 } });
+    store.moveComment(c.id, { x: 50, y: 60 });
+    expect(store.comments[0]?.position).toEqual({ x: 50, y: 60 });
+    store.updateComment(c.id, { text: "edited", color: "#ff0000" });
+    expect(store.comments[0]?.text).toBe("edited");
+    expect(store.comments[0]?.color).toBe("#ff0000");
+  });
+
+  it("removeComment is a no-op for unknown ids", () => {
+    const store = useDocumentStore();
+    store.addComment({ text: "x", position: { x: 0, y: 0 } });
+    store.removeComment("c-not-real");
+    expect(store.comments).toHaveLength(1);
   });
 });

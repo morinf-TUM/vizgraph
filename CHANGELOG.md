@@ -4,6 +4,16 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Backlog: comments / annotations on the canvas (2026-05-02)
+- New `Comment` Zod schema and inferred TS type in `src/document/types.ts` (`{ id, text, position, size?, color? }`); `GraphSchema.comments` is `z.array(CommentSchema).default([])` so existing v1 documents without comments still parse — no schema-version bump.
+- `documentStore` mutators: `addComment`, `removeComment`, `moveComment`, `updateComment`. `useCanvasOperations` adds `addCommentAt`, `removeComment`, `moveComment`, `editCommentText`, all wrapped in `history.transact` so Ctrl+Z reverts a single user action atomically.
+- `nextCommentId` allocates short `c<n>` ids by scanning the live array's max — deleted ids are reissued (intentional: comment ids aren't user-facing references and skipping a monotonic counter avoids a schema field).
+- `CommentNode.vue` renders the comment with a dashed amber border, inline double-click-to-edit textarea, Esc cancels, Ctrl/Cmd+Enter commits, blur commits. Watcher syncs the local draft with store updates from undo/redo while not in edit mode.
+- `CanvasView.vue` integrates comments by mapping `docStore.comments` to VueFlow nodes with `type: "comment"` and a `c:` id prefix that the change handlers strip back off. Comments don't participate in editor-store selection (no property-panel hook) but do support drag and remove via the existing VueFlow change events.
+- `compile()` already drops comments (it reads only `nodes` and `edges`); a new test pins this — runtime JSON is still legacy-shaped, no `comment` strings leak through.
+- TopBar gains a `Comment` button next to `Tidy`.
+- Tests: 5 new vitest cases for comment ops + 1 compiler-strips-comments case + 1 Playwright case (add comment via the button, see `.vue-flow__node-comment`, save and verify the comment round-trips through the JSON download). Schema-cascading touch-ups: 6 existing tests + the legacy serializer add `comments: []` to their explicit `GraphDocument` literals; the on-disk `fixtures/versioned/simple-add.json` adds an empty comments array. Total: 33 vitest files / 240 cases + 8 Playwright cases. lint / typecheck / build / format all green.
+
 ### Backlog: Ctrl+S / Ctrl+O / F keyboard shortcuts (2026-05-02)
 - `useShortcuts.ts` extended with `Ctrl/Cmd+S` (save current document via `useFileIO.save("graph.json")`), `Ctrl/Cmd+O` (programmatic file picker via the new `src/editor/openFile.ts` helper, then `useFileIO.open(file)`), and `F` (fit-view, dispatched through the editor store).
 - `editorStore` gains `fitViewFn: Ref<(() => void) | undefined>`, `setFitViewFn(fn)`, and `fitView(): boolean`. `CanvasView` registers `useVueFlow().fitView` on mount and clears the slot on unmount, so the global keyboard layer never holds a reference to a stale VueFlow instance.

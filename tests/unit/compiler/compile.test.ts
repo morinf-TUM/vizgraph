@@ -189,6 +189,27 @@ describe("compile", () => {
     expect(() => compile(doc)).toThrow(/value/);
   });
 
+  it("strips graph.comments from the runtime output", () => {
+    const doc = docOf({
+      version: 1,
+      graph: {
+        nodes: [
+          {
+            id: 1,
+            type: "Constant",
+            position: { x: 0, y: 0 },
+            parameters: { value: 1 },
+          },
+        ],
+        edges: [],
+        comments: [{ id: "c1", text: "TODO: rename this", position: { x: 0, y: 0 } }],
+      },
+    });
+    const out = compile(doc);
+    expect(JSON.stringify(out)).not.toMatch(/TODO|c1|comment/i);
+    expect(out.nodes).toHaveLength(1);
+  });
+
   it("throws when a Constant value is not an integer", () => {
     const doc = docOf({
       version: 1,

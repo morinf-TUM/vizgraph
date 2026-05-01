@@ -36,10 +36,27 @@ export const ViewportSchema = z.object({
 });
 export type Viewport = z.infer<typeof ViewportSchema>;
 
+export const CommentSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  position: PositionSchema,
+  size: z
+    .object({
+      width: z.number().positive(),
+      height: z.number().positive(),
+    })
+    .optional(),
+  color: z.string().optional(),
+});
+export type Comment = z.infer<typeof CommentSchema>;
+
 export const GraphSchema = z.object({
   nodes: z.array(NodeSchema),
   edges: z.array(EdgeSchema),
   viewport: ViewportSchema.optional(),
+  // Editor-only annotations. Persist with the document (so reviewers see the
+  // same comments) but never reach the runtime — the compiler strips them.
+  comments: z.array(CommentSchema).default([]),
 });
 export type Graph = z.infer<typeof GraphSchema>;
 

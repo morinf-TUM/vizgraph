@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import {
+  type Comment,
   type EdgeEndpoint,
   type GraphDocument,
   type GraphEdge,
@@ -8,11 +9,11 @@ import {
   type Position,
   type Viewport,
 } from "../../document/types";
-import { edgeIdFor, nextNodeId } from "../../document/ids";
+import { edgeIdFor, nextCommentId, nextNodeId } from "../../document/ids";
 
 const emptyDocument = (): GraphDocument => ({
   version: 1,
-  graph: { nodes: [], edges: [] },
+  graph: { nodes: [], edges: [], comments: [] },
 });
 
 export interface AddNodeInput {
@@ -28,12 +29,20 @@ export interface AddEdgeInput {
   target: EdgeEndpoint;
 }
 
+export interface AddCommentInput {
+  text: string;
+  position: Position;
+  size?: { width: number; height: number };
+  color?: string;
+}
+
 export const useDocumentStore = defineStore("document", () => {
   const doc = ref<GraphDocument>(emptyDocument());
 
   const nodes = computed(() => doc.value.graph.nodes);
   const edges = computed(() => doc.value.graph.edges);
   const viewport = computed(() => doc.value.graph.viewport);
+  const comments = computed(() => doc.value.graph.comments);
 
   const findNodeIndex = (id: number): number => doc.value.graph.nodes.findIndex((n) => n.id === id);
 
@@ -130,6 +139,47 @@ export const useDocumentStore = defineStore("document", () => {
     }
   };
 
+  const findCommentIndex = (id: string): number =>
+    doc.value.graph.comments.findIndex((c) => c.id === id);
+
+  const addComment = (input: AddCommentInput): Comment => {
+    const id = nextCommentId(doc.value);
+    const comment: Comment = {
+      id,
+      text: input.text,
+      position: input.position,
+      ...(input.size !== undefined ? { size: input.size } : {}),
+      ...(input.color !== undefined ? { color: input.color } : {}),
+    };
+    doc.value.graph.comments.push(comment);
+    return comment;
+  };
+
+  const removeComment = (id: string): void => {
+    const idx = findCommentIndex(id);
+    if (idx < 0) return;
+    doc.value.graph.comments.splice(idx, 1);
+  };
+
+  const moveComment = (id: string, position: Position): void => {
+    const idx = findCommentIndex(id);
+    if (idx < 0) return;
+    const comment = doc.value.graph.comments[idx];
+    if (!comment) return;
+    comment.position = position;
+  };
+
+  const updateComment = (id: string, patch: Partial<Omit<Comment, "id">>): void => {
+    const idx = findCommentIndex(id);
+    if (idx < 0) return;
+    const comment = doc.value.graph.comments[idx];
+    if (!comment) return;
+    if (patch.text !== undefined) comment.text = patch.text;
+    if (patch.position !== undefined) comment.position = patch.position;
+    if (patch.size !== undefined) comment.size = patch.size;
+    if (patch.color !== undefined) comment.color = patch.color;
+  };
+
   const replaceDocument = (next: GraphDocument): void => {
     doc.value = next;
   };
@@ -143,6 +193,7 @@ export const useDocumentStore = defineStore("document", () => {
     nodes,
     edges,
     viewport,
+    comments,
     addNode,
     removeNode,
     moveNode,
@@ -152,6 +203,10 @@ export const useDocumentStore = defineStore("document", () => {
     addEdge,
     removeEdge,
     setViewport,
+    addComment,
+    removeComment,
+    moveComment,
+    updateComment,
     replaceDocument,
     newDocument,
   };

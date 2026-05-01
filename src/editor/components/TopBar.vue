@@ -7,6 +7,7 @@ import { useExecutionStore } from "../stores/executionStore";
 import { useFileIO } from "../composables/useFileIO";
 import { useAutoLayout } from "../composables/useAutoLayout";
 import { useRunResultImport } from "../composables/useRunResultImport";
+import { useCanvasOperations } from "../composables/useCanvasOperations";
 
 const docStore = useDocumentStore();
 const editorStore = useEditorStore();
@@ -15,6 +16,7 @@ const execution = useExecutionStore();
 const fileIO = useFileIO();
 const autoLayout = useAutoLayout();
 const runResultImport = useRunResultImport();
+const ops = useCanvasOperations();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const runResultInput = ref<HTMLInputElement | null>(null);
@@ -62,6 +64,10 @@ const onRedo = (): void => {
 };
 const onTidy = (): void => {
   autoLayout.tidy();
+};
+
+const onAddComment = (): void => {
+  ops.addCommentAt("New comment", { x: 80, y: 80 });
 };
 
 const onImportRun = (): void => {
@@ -124,6 +130,7 @@ const showTickControls = computed(() => execution.tickCount > 1);
       </button>
       <span class="top-bar__sep" />
       <button type="button" data-testid="topbar-tidy" @click="onTidy">Tidy</button>
+      <button type="button" data-testid="topbar-add-comment" @click="onAddComment">Comment</button>
       <span class="top-bar__sep" />
       <button type="button" data-testid="topbar-import-run" @click="onImportRun">
         Import RunResult

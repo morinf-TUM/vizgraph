@@ -16,6 +16,7 @@ import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useCanvasOperations } from "../composables/useCanvasOperations";
 import CustomNode from "./CustomNode.vue";
+import CommentNode from "./CommentNode.vue";
 
 const docStore = useDocumentStore();
 const editorStore = useEditorStore();
@@ -37,15 +38,29 @@ onUnmounted(() => {
 });
 const ops = useCanvasOperations();
 
-const flowNodes = computed(() =>
-  docStore.nodes.map((n) => ({
+// Node ids in our document are integers, comment ids are strings prefixed
+// with "c". To avoid collisions in VueFlow's flat id namespace, comments
+// surface to VueFlow with a "c:" prefix the change handlers strip back off.
+const COMMENT_PREFIX = "c:";
+
+const flowNodes = computed(() => {
+  const nodes = docStore.nodes.map((n) => ({
     id: String(n.id),
     type: "custom",
     position: { x: n.position.x, y: n.position.y },
     data: { node: n },
     selected: editorStore.selectedNodeIds.has(n.id),
-  })),
-);
+  }));
+  const commentNodes = docStore.comments.map((c) => ({
+    id: COMMENT_PREFIX + c.id,
+    type: "comment",
+    position: { x: c.position.x, y: c.position.y },
+    data: { comment: c },
+    draggable: true,
+    selectable: true,
+  }));
+  return [...nodes, ...commentNodes];
+});
 
 const flowEdges = computed(() =>
   docStore.edges.map((e) => ({
@@ -77,13 +92,29 @@ const onConnect = (connection: Connection): void => {
 
 const onNodesChange = (changes: NodeChange[]): void => {
   for (const change of changes) {
+    // VueFlow's NodeAddChange variant has no top-level id; skip it (we
+    // create nodes through useCanvasOperations, not through VueFlow's add
+    // events). All remaining change types in the union expose .id.
+    if (change.type === "add") continue;
+    const id = change.id;
+    const isComment = typeof id === "string" && id.startsWith(COMMENT_PREFIX);
+    const commentId = isComment ? id.slice(COMMENT_PREFIX.length) : undefined;
     if (change.type === "position" && change.position && !change.dragging) {
-      ops.moveNode(Number(change.id), { x: change.position.x, y: change.position.y });
+      if (commentId !== undefined) {
+        ops.moveComment(commentId, { x: change.position.x, y: change.position.y });
+      } else {
+        ops.moveNode(Number(id), { x: change.position.x, y: change.position.y });
+      }
     } else if (change.type === "remove") {
-      ops.removeNode(Number(change.id));
+      if (commentId !== undefined) ops.removeComment(commentId);
+      else ops.removeNode(Number(id));
     } else if (change.type === "select") {
-      const id = Number(change.id);
-      if (change.selected) editorStore.selectNode(id, true);
+      // Comments don't participate in editor-store selection (they have no
+      // property panel); we rely on VueFlow's internal selected flag for
+      // visuals. Skip the store update for comment selection events.
+      if (isComment) continue;
+      const numericId = Number(id);
+      if (change.selected) editorStore.selectNode(numericId, true);
       else editorStore.clearSelection();
     }
   }
@@ -114,6 +145,9 @@ const onEdgesChange = (changes: EdgeChange[]): void => {
     >
       <template #node-custom="props">
         <CustomNode :data="props.data" />
+      </template>
+      <template #node-comment="props">
+        <CommentNode :data="props.data" />
       </template>
       <Background />
       <MiniMap />

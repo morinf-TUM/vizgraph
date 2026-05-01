@@ -58,7 +58,7 @@ export const safeLoadLegacy = (input: unknown): LoadResult => {
     }),
   );
 
-  const doc: GraphDocument = { version: 1, graph: { nodes, edges } };
+  const doc: GraphDocument = { version: 1, graph: { nodes, edges, comments: [] } };
   const final = GraphDocumentSchema.safeParse(doc);
   if (!final.success) return { success: false, error: final.error.message };
   return { success: true, data: final.data };

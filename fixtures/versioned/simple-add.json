@@ -47,6 +47,7 @@
         "source": { "node": 3, "port": "sum" },
         "target": { "node": 4, "port": "in" }
       }
-    ]
+    ],
+    "comments": []
   }
 }

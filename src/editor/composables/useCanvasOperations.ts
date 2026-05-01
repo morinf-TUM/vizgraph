@@ -1,4 +1,4 @@
-import type { EdgeEndpoint, GraphEdge, GraphNode, Position } from "../../document/types";
+import type { Comment, EdgeEndpoint, GraphEdge, GraphNode, Position } from "../../document/types";
 import { defaultRegistry } from "../../registry/registry";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
@@ -93,6 +93,37 @@ export const useCanvasOperations = () => {
     });
   };
 
+  const addCommentAt = (text: string, position: Position): Comment =>
+    history.transact("Add comment", () => {
+      const c = docStore.addComment({ text, position });
+      editorStore.markDirty();
+      return c;
+    });
+
+  const removeComment = (id: string): void => {
+    if (docStore.comments.findIndex((c) => c.id === id) < 0) return;
+    history.transact(`Remove comment ${id}`, () => {
+      docStore.removeComment(id);
+      editorStore.markDirty();
+    });
+  };
+
+  const moveComment = (id: string, position: Position): void => {
+    if (docStore.comments.findIndex((c) => c.id === id) < 0) return;
+    history.transact(`Move comment ${id}`, () => {
+      docStore.moveComment(id, position);
+      editorStore.markDirty();
+    });
+  };
+
+  const editCommentText = (id: string, text: string): void => {
+    if (docStore.comments.findIndex((c) => c.id === id) < 0) return;
+    history.transact("Edit comment", () => {
+      docStore.updateComment(id, { text });
+      editorStore.markDirty();
+    });
+  };
+
   return {
     addNodeAt,
     removeNode,
@@ -103,5 +134,9 @@ export const useCanvasOperations = () => {
     removeSelected,
     updateParameter,
     renameNode,
+    addCommentAt,
+    removeComment,
+    moveComment,
+    editCommentText,
   };
 };

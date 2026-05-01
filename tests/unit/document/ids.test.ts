@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { nextNodeId, edgeIdFor } from "../../../src/document/ids";
 import type { GraphDocument } from "../../../src/document/types";
 
-const empty: GraphDocument = { version: 1, graph: { nodes: [], edges: [] } };
+const empty: GraphDocument = { version: 1, graph: { nodes: [], edges: [], comments: [] } };
 const someDoc: GraphDocument = {
   version: 1,
   graph: {
@@ -12,6 +12,7 @@ const someDoc: GraphDocument = {
       { id: 4, type: "Print", position: { x: 0, y: 0 }, parameters: {} },
     ],
     edges: [],
+    comments: [],
   },
 };
 

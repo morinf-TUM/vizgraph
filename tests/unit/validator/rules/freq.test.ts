@@ -17,6 +17,7 @@ const docWithFrequencies = (freqs: ReadonlyArray<number | null | undefined>): Gr
       ...(f === undefined ? {} : { frequency_hz: f }),
     })),
     edges: [],
+    comments: [],
   },
 });
 

@@ -31,6 +31,7 @@ describe("useLiveValidation", () => {
       graph: {
         nodes: [{ id: 1, type: "Constant", position: { x: 0, y: 0 }, parameters: {} }],
         edges: [],
+        comments: [],
       },
     });
     const wrapper = mount(Host, {

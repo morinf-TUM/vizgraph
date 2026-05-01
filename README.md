@@ -49,6 +49,30 @@ success, `1` validation/compile errors, `2` bad invocation. `validate
 --json` emits the `Diagnostic[]` machine-readable. After `pnpm install`,
 the binary is also reachable as `vizgraph` via the `bin` shim.
 
+## Plugin / external node types
+
+Third-party node types register against the default registry at app boot,
+before `createApp(...).mount(...)`:
+
+```ts
+import { defaultRegistry } from "./registry/registry";
+
+defaultRegistry().register({
+  type: "Counter",
+  display_name: "Counter",
+  category: "Plugin",
+  inputs: [{ name: "tick", type: "int" }],
+  outputs: [{ name: "count", type: "int" }],
+  parameters: { start: { type: "int", required: false, default: 0 } },
+});
+```
+
+Registration re-parses through `NodeTypeDescriptionSchema`, so any
+schema-invalid input is rejected before the registry is mutated.
+Re-registering an existing type throws unless `{ replace: true }` is
+passed. `unregister(type)` removes a type. Reactivity for hot-add at
+runtime is deferred — register before mount.
+
 ## Repository layout
 
 ```

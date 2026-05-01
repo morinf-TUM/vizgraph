@@ -4,6 +4,11 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Backlog: plugin / external node-type registration API (2026-05-02)
+- `NodeTypeRegistry` interface gains `register(description, { replace? })`, `unregister(type)`, and `has(type)`. Registration re-parses through `NodeTypeDescriptionSchema` so plugin authors get the same Zod diagnostics the loader path produces. Re-registering an existing type throws by default; pass `{ replace: true }` to override (silent shadowing is intentionally not allowed).
+- `defaultRegistry()` is the canonical plugin host: a third-party plugin imports the singleton, calls `register(...)` for each type it provides at app boot before mount, and the rest of the editor (`Palette`, `CustomNode`, `validator/rules/ports`, `params`, `useCanvasOperations`) sees the new types unchanged. Reactivity for hot-add at runtime is deferred — pre-mount registration is the supported pattern for v1.
+- Tests: 8 new Vitest cases covering `has`, `register` (add / duplicate-rejection / replace / schema-fail), `unregister` (success / unknown), and the default-registry plugin-host round-trip. Total: 32 Vitest files / 225 cases.
+
 ### Backlog: headless CLI (2026-05-02)
 - `src/cli/index.ts`: `validate` / `compile` / `roundtrip` subcommands plus `help`. Loads either legacy or versioned JSON via the existing `serializer/index.loadGraph` dispatch. Exit codes 0 / 1 / 2 (success / errors found / bad invocation). `validate --json` emits the `Diagnostic[]` machine-readable; `validate --warnings-as-errors` upgrades warnings; `compile [--out path] [--pretty]` writes runtime-bound JSON; `roundtrip [--pretty]` canonicalises legacy → versioned.
 - `bin/vizgraph.mjs`: shim that re-exec's the TS entry through `tsx`, so `pnpm install` exposes a `vizgraph` binary without a separate build step. `pnpm cli ...` is the dev-time equivalent.

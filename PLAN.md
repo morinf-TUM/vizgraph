@@ -18,7 +18,7 @@
 - [x] Write `.gitignore`, `CHANGELOG.md`.
 - [x] `git init` and initial commit.
 - [x] Spec self-review pass (placeholders / contradictions / ambiguity / scope).
-- [ ] User reviews spec; gate before Phase 1.
+- [x] User reviews spec; gate before Phase 1. *(approved by user; option B in 2026-05-01 session)*
 
 ## Phase 1 — Schema & Runtime Adapter
 

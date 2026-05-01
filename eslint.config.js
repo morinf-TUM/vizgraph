@@ -13,6 +13,19 @@ export default tseslint.config(
   {
     files: ["**/*.ts", "**/*.vue"],
     languageOptions: {
+      globals: {
+        window: "readonly",
+        document: "readonly",
+        URL: "readonly",
+        Blob: "readonly",
+        File: "readonly",
+        HTMLElement: "readonly",
+        HTMLInputElement: "readonly",
+        HTMLAnchorElement: "readonly",
+        Event: "readonly",
+        MouseEvent: "readonly",
+        KeyboardEvent: "readonly",
+      },
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
@@ -33,6 +46,9 @@ export default tseslint.config(
       "vue/html-closing-bracket-newline": "off",
       "vue/first-attribute-linebreak": "off",
       "vue/html-indent": "off",
+      // Component names like "Palette" / "TopBar" don't clash with native
+      // HTML elements in this app; the multi-word rule is overly strict.
+      "vue/multi-word-component-names": "off",
     },
   },
   {

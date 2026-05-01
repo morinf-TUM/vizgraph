@@ -1,15 +1,23 @@
 <script setup lang="ts">
-// Phase 2 entry shell. CanvasView, Palette, PropertyPanel, and TopBar will
-// fill the regions over the rest of Phase 2.
+import TopBar from "./editor/components/TopBar.vue";
+import Palette from "./editor/components/Palette.vue";
+import CanvasView from "./editor/components/CanvasView.vue";
+import PropertyPanel from "./editor/components/PropertyPanel.vue";
 </script>
 
 <template>
   <div class="editor-shell">
-    <header class="editor-shell__top">n8n-port</header>
+    <TopBar />
     <main class="editor-shell__body">
-      <aside class="editor-shell__palette">Palette</aside>
-      <section class="editor-shell__canvas">Canvas</section>
-      <aside class="editor-shell__properties">Properties</aside>
+      <aside class="editor-shell__palette">
+        <Palette />
+      </aside>
+      <section class="editor-shell__canvas">
+        <CanvasView />
+      </section>
+      <aside class="editor-shell__properties">
+        <PropertyPanel />
+      </aside>
     </main>
   </div>
 </template>
@@ -20,11 +28,6 @@
   grid-template-rows: auto 1fr;
   height: 100vh;
   width: 100vw;
-}
-.editor-shell__top {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--el-border-color-light, #ddd);
-  font-weight: 600;
 }
 .editor-shell__body {
   display: grid;

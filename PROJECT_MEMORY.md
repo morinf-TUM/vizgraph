@@ -12,13 +12,12 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 **Phase 4 — Run-Result Import & Observability complete** (tag `phase-4-complete` on `phase-4-runresult`; 31 Vitest files / 202 tests + 6 Playwright e2e cases all green). All four committed phases complete.
 
-**Backlog progress (2026-05-02, all merged to `master` and pushed to `origin`):** ✅ Headless CLI · ✅ Plugin / external node-type registration · ✅ Code-splitting + Element Plus eager-load removed (initial gzip 417 KB → ~17 KB) · ✅ Ctrl+S / Ctrl+O / F shortcuts · ✅ Comments / annotations.
+**Backlog progress (2026-05-02, all merged to `master` and pushed to `origin`):** ✅ Headless CLI · ✅ Plugin / external node-type registration · ✅ Code-splitting + Element Plus eager-load removed (initial gzip 417 KB → ~17 KB) · ✅ Ctrl+S / Ctrl+O / F shortcuts · ✅ Comments / annotations · ✅ Dark theme + a11y audit (n8n-style coral, primitive+semantic two-layer tokens in `src/styles/theme.css`, `[data-theme="dark"], :root` future-proofing for additional themes, `docs/theming.md` semantic-token contract, axe e2e gate via `@axe-core/playwright`).
 
-**Resumption point — pick one of two remaining backlog items** (full detail in `CHANGELOG.md`):
-1. **Theming (n8n-style dark theme + a11y audit)** — recommended next: lower architectural risk, broader polish. Introduces `useTheme` composable, swaps hard-coded colors to CSS variables with light/dark sets, axe pass via Playwright. Element Plus is still in `package.json` but unused at runtime — its CSS variable fallbacks are intentional and should keep working.
-2. **Sub-graphs / grouping** — biggest remaining architectural change: touches schema, validator, compiler, canvas. Save for last.
+**Resumption point — final remaining backlog item:**
+1. **Sub-graphs / grouping** — biggest remaining architectural change: touches schema, validator, compiler, canvas.
 
-Repo HEAD is `master` at `f0d0ee8` with all four phase tags + 5 backlog commits pushed. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
+Repo HEAD is `master` at `<post-merge-SHA>` with all four phase tags + 6 backlog commits pushed. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
 
 ## Tech stack (locked Phase 0)
 
@@ -103,7 +102,7 @@ Pure functions in `document`, `registry`, `serializer`, `validator`, `compiler` 
 
 ## Environment notes (Phase 1 / Plan Task 1 — toolchain verified 2026-05-01)
 
-- Node v22.22.2 active via nvm; default alias is `22`. Bash subshells **do not** auto-source nvm — every Node/pnpm command in a non-login shell needs `. ~/.nvm/nvm.sh && nvm use 22 >/dev/null && …` as a prefix.
+- Node v22.22.2 active via nvm; default alias is `22`. Bash subshells **do not** auto-source nvm. The project sidesteps this with `.claude/bash-env.sh`, auto-loaded via `env.BASH_ENV` in `.claude/settings.local.json`, which prepends Node 22's bin to `PATH` so `pnpm`/`node`/`npx` resolve directly without any per-command prefix. (The older `. ~/.nvm/nvm.sh && nvm use 22 …` prefix is obsolete and triggers needless permission prompts — do not use it.)
 - pnpm 10.33.2 active via corepack; corepack required a fully-qualified semver in `package.json` `packageManager` (`pnpm@10` was rejected, `pnpm@10.33.2` accepted).
 - Resolved versions in `pnpm-lock.yaml`: zod 4.4.1, vitest 4.1.5, typescript 6.0.3, eslint 10.2.1, typescript-eslint 8.59.1, @vitest/coverage-v8 4.1.5, @eslint/js 10.0.1. Notable transitive: `rolldown@1.0.0-rc.17` (RC; pulled by Vitest 4 — flag for the Phase-2 Vite build but not currently exercised).
 - ESLint uses flat config (`eslint.config.js`) with the `typescript-eslint` meta package and `projectService: true`. Empty `src/` does not break `pnpm lint`.

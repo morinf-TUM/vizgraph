@@ -230,7 +230,7 @@ const showTickControls = computed(() => execution.tickCount > 1);
 }
 .top-bar__mode--inspect {
   border-color: var(--vg-accent);
-  color: var(--vg-accent-hover);
+  color: var(--vg-accent);
   background: var(--vg-accent-bg);
 }
 .top-bar__actions {

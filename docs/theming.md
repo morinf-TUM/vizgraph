@@ -40,7 +40,7 @@ Components MUST read only semantic tokens (`var(--vg-bg)`, `var(--vg-accent)`, �
 | `--vg-text` | Primary body text and headings. |
 | `--vg-text-muted` | Secondary text — captions, timestamps, helper copy. |
 | `--vg-text-subtle` | Tertiary text — placeholders, disabled labels. |
-| `--vg-text-on-accent` | Foreground when the background is `--vg-accent` (e.g. primary button text). |
+| `--vg-text-on-accent` | Foreground for any bright accent / status chip background (`--vg-accent`, `--vg-error`, `--vg-warn`, `--vg-info`). Always a deep-slate color with sufficient contrast against any of those bright fills. |
 
 ### Accent (n8n coral)
 | Token | Use |

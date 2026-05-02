@@ -80,7 +80,7 @@ const onKeydown = (event: KeyboardEvent): void => {
   border-radius: 6px;
   background: var(--vg-warn-bg);
   font-size: 12px;
-  color: var(--vg-warn);
+  color: var(--vg-text);
   white-space: pre-wrap;
   word-break: break-word;
   box-shadow: var(--vg-shadow-sm);

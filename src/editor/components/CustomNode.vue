@@ -176,7 +176,7 @@ const formatDuration = (ns: number): string => {
   width: 8px;
   height: 8px;
   background: var(--vg-accent);
-  border: 1px solid var(--vg-accent-hover);
+  border: 1px solid var(--vg-border-strong);
 }
 .custom-node__footer {
   padding: 4px 10px;

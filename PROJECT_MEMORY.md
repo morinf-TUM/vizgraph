@@ -17,7 +17,7 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 **Resumption point — final remaining backlog item:**
 1. **Sub-graphs / grouping** — biggest remaining architectural change: touches schema, validator, compiler, canvas.
 
-Repo HEAD is `master` at `<post-merge-SHA>` with all four phase tags + 6 backlog commits pushed. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
+Repo HEAD is `master` at `01f9537` with all four phase tags + 6 backlog commits pushed. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
 
 ## Tech stack (locked Phase 0)
 

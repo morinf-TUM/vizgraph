@@ -48,9 +48,7 @@ export const resolveSource = (
         (n.parameters as { name?: string }).name === endpoint.port,
     );
     if (!pseudo) return null;
-    const innerEdge = childGraph.edges.find(
-      (e) => e.target.node === pseudo.id && e.target.port === endpoint.port,
-    );
+    const innerEdge = childGraph.edges.find((e) => e.target.node === pseudo.id);
     if (!innerEdge) return null;
     return resolveSource(doc, childPath, innerEdge.source);
   }
@@ -95,7 +93,7 @@ export const resolveTarget = (
     );
     if (!pseudo) return [];
     return childGraph.edges
-      .filter((e) => e.source.node === pseudo.id && e.source.port === endpoint.port)
+      .filter((e) => e.source.node === pseudo.id)
       .flatMap((e) => resolveTarget(doc, childPath, e.target));
   }
 

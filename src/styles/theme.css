@@ -36,7 +36,8 @@
   --vg-color-blue-950: #1c2a3a;
 }
 
-[data-theme="dark"], :root {
+[data-theme="dark"],
+:root {
   /* ── Semantic layer — what components consume ── */
 
   /* Surfaces */

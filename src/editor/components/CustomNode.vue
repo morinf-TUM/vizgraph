@@ -102,30 +102,30 @@ const formatDuration = (ns: number): string => {
 <style scoped>
 .custom-node {
   min-width: 140px;
-  background: #fff;
-  border: 1px solid #d0d7de;
+  background: var(--vg-surface);
+  border: 1px solid var(--vg-border);
   border-radius: 6px;
   font-size: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--vg-shadow-sm);
 }
 .custom-node--unknown {
-  border-color: #d97706;
-  background: #fff7ed;
+  border-color: var(--vg-warn);
+  background: var(--vg-warn-bg);
 }
 .custom-node--inspect {
-  border-color: #2563eb;
+  border-color: var(--vg-accent);
 }
 .custom-node--errored {
-  border-color: #b91c1c;
-  background: #fef2f2;
+  border-color: var(--vg-error);
+  background: var(--vg-error-bg);
 }
 .custom-node__header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   padding: 6px 10px;
-  border-bottom: 1px solid #eaecef;
-  background: #f6f8fa;
+  border-bottom: 1px solid var(--vg-border);
+  background: var(--vg-surface-2);
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
 }
@@ -133,7 +133,7 @@ const formatDuration = (ns: number): string => {
   font-weight: 600;
 }
 .custom-node__type {
-  color: #6b7280;
+  color: var(--vg-text-muted);
   font-size: 10px;
 }
 .custom-node__ports {
@@ -161,33 +161,33 @@ const formatDuration = (ns: number): string => {
   flex-direction: row;
 }
 .custom-node__port-label {
-  color: #374151;
+  color: var(--vg-text);
   display: inline-flex;
   flex-direction: column;
   align-items: flex-end;
   line-height: 1.2;
 }
 .custom-node__overlay-value {
-  color: #2563eb;
+  color: var(--vg-accent);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
 }
 .custom-node__handle {
   width: 8px;
   height: 8px;
-  background: #2563eb;
-  border: 1px solid #1e40af;
+  background: var(--vg-accent);
+  border: 1px solid var(--vg-accent-hover);
 }
 .custom-node__footer {
   padding: 4px 10px;
-  border-top: 1px solid #eaecef;
+  border-top: 1px solid var(--vg-border);
   font-size: 10px;
-  color: #6b7280;
+  color: var(--vg-text-muted);
   display: flex;
   justify-content: flex-end;
 }
 .custom-node__error {
-  color: #b91c1c;
+  color: var(--vg-error);
   font-weight: 600;
 }
 .custom-node__duration {

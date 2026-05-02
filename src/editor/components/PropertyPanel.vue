@@ -90,17 +90,17 @@ const onNameInput = (event: Event): void => {
   font-size: 12px;
   font-weight: 600;
   margin: 0 0 8px;
-  color: #374151;
+  color: var(--vg-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .property-panel__empty,
 .property-panel__warning {
-  color: #6b7280;
+  color: var(--vg-text-muted);
   font-size: 12px;
 }
 .property-panel__warning {
-  color: #b91c1c;
+  color: var(--vg-error);
   margin-top: 8px;
 }
 .property-panel__field {
@@ -112,18 +112,20 @@ const onNameInput = (event: Event): void => {
 .property-panel__label {
   font-size: 10px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--vg-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .property-panel__readonly {
   font-size: 12px;
-  color: #111827;
+  color: var(--vg-text);
 }
 .property-panel__input {
   font-size: 12px;
   padding: 4px 6px;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--vg-border);
   border-radius: 4px;
+  background: var(--vg-surface-2);
+  color: var(--vg-text);
 }
 </style>

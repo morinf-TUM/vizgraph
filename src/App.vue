@@ -48,6 +48,8 @@ useShortcuts();
   grid-template-rows: auto 1fr;
   height: 100vh;
   width: 100vw;
+  background: var(--vg-bg);
+  color: var(--vg-text);
 }
 .editor-shell__body {
   display: grid;
@@ -56,13 +58,15 @@ useShortcuts();
 }
 .editor-shell__palette,
 .editor-shell__properties {
-  border-right: 1px solid var(--el-border-color-light, #eee);
+  border-right: 1px solid var(--el-border-color-light, var(--vg-border));
   padding: 12px;
   overflow: auto;
+  background: var(--vg-surface);
+  color: var(--vg-text);
 }
 .editor-shell__properties {
   border-right: none;
-  border-left: 1px solid var(--el-border-color-light, #eee);
+  border-left: 1px solid var(--el-border-color-light, var(--vg-border));
 }
 .editor-shell__centre {
   display: grid;
@@ -72,7 +76,7 @@ useShortcuts();
 .editor-shell__canvas {
   position: relative;
   overflow: hidden;
-  background: var(--el-bg-color-page, #fafafa);
+  background: var(--el-bg-color-page, var(--vg-bg));
 }
 </style>
 
@@ -83,7 +87,7 @@ useShortcuts();
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: #6b7280;
+  color: var(--vg-text-muted);
   font-size: 12px;
 }
 </style>

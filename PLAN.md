@@ -94,10 +94,12 @@ Prerequisite: upgrade Node to 22 LTS on dev machine; `corepack enable && corepac
 - [ ] Pre-commit hook (Phase 1+): format, lint, typecheck, vitest on changed.
 - [ ] CI green before tagging any phase complete.
 
-## Backlog (post-Phase-4 ideas, not committed)
+## Backlog (post-Phase-4 ideas)
 
-- Plugin/external node-type registration API.
-- Headless CLI for validation and compilation.
-- Theming (n8n-style dark theme, accessibility audit).
-- Sub-graphs / grouping.
-- Comments / annotations on nodes and edges.
+- [x] Plugin/external node-type registration API. *(2026-05-02 — see CHANGELOG.)*
+- [x] Headless CLI for validation and compilation. *(2026-05-02 — `vizgraph` binary + `pnpm cli`.)*
+- [x] Code-splitting + Element Plus eager-load removed. *(2026-05-02 — initial gzip 417 KB → ~17 KB.)*
+- [x] Ctrl+S / Ctrl+O / F keyboard shortcuts. *(2026-05-02 — finishes the Phase-3 keyboard story.)*
+- [x] Comments / annotations on the canvas. *(2026-05-02 — free-floating notes; attached annotations could be a follow-up.)*
+- [ ] Theming (n8n-style dark theme, accessibility audit). *(Recommended next — lower architectural risk, broad polish.)*
+- [ ] Sub-graphs / grouping. *(Biggest remaining change: schema + validator + compiler + canvas.)*

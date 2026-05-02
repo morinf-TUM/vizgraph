@@ -10,7 +10,15 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 ## Current phase
 
-**Phase 4 — Run-Result Import & Observability complete** (tag `phase-4-complete` on `phase-4-runresult`; 31 Vitest files / 202 tests + 6 Playwright e2e cases all green). All four committed phases complete. Resumption point: **Backlog** (`PLAN.md` lines 99–106) — plugin/external node-type registration, headless validation/compilation CLI, theming + accessibility audit, sub-graphs/grouping, comments/annotations. None of these is committed; pick one when restarting.
+**Phase 4 — Run-Result Import & Observability complete** (tag `phase-4-complete` on `phase-4-runresult`; 31 Vitest files / 202 tests + 6 Playwright e2e cases all green). All four committed phases complete.
+
+**Backlog progress (2026-05-02, all merged to `master` and pushed to `origin`):** ✅ Headless CLI · ✅ Plugin / external node-type registration · ✅ Code-splitting + Element Plus eager-load removed (initial gzip 417 KB → ~17 KB) · ✅ Ctrl+S / Ctrl+O / F shortcuts · ✅ Comments / annotations.
+
+**Resumption point — pick one of two remaining backlog items** (full detail in `CHANGELOG.md`):
+1. **Theming (n8n-style dark theme + a11y audit)** — recommended next: lower architectural risk, broader polish. Introduces `useTheme` composable, swaps hard-coded colors to CSS variables with light/dark sets, axe pass via Playwright. Element Plus is still in `package.json` but unused at runtime — its CSS variable fallbacks are intentional and should keep working.
+2. **Sub-graphs / grouping** — biggest remaining architectural change: touches schema, validator, compiler, canvas. Save for last.
+
+Repo HEAD is `master` at `f0d0ee8` with all four phase tags + 5 backlog commits pushed. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
 
 ## Tech stack (locked Phase 0)
 

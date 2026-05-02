@@ -1,0 +1,76 @@
+/* Theme tokens — primitive + semantic two-layer structure.
+ *
+ * Components MUST consume semantic tokens only (e.g. var(--vg-bg)).
+ * Reaching for a primitive (var(--vg-color-coral-500)) from a component
+ * is a smell — it means the component has its own intent that wants its
+ * own semantic token.
+ *
+ * Adding a future theme: drop a sibling block, e.g.
+ *   [data-theme="light"] { --vg-bg: var(--vg-color-slate-50); ... }
+ * No component changes required.
+ */
+
+:root {
+  /* ── Primitive layer — raw palette ── */
+  --vg-color-slate-950: #1a1d23;
+  --vg-color-slate-900: #23272e;
+  --vg-color-slate-800: #2c313a;
+  --vg-color-slate-750: #323843;
+  --vg-color-slate-700: #3a3f47;
+  --vg-color-slate-600: #4a505a;
+  --vg-color-slate-400: #6b7280;
+  --vg-color-slate-300: #9aa1ad;
+  --vg-color-slate-100: #e6e8eb;
+
+  --vg-color-coral-500: #ff6d5a;
+  --vg-color-coral-400: #ff8676;
+  --vg-color-coral-950: #3a2522;
+
+  --vg-color-amber-500: #f5a623;
+  --vg-color-amber-950: #3a2c14;
+
+  --vg-color-red-500: #ff5c5c;
+  --vg-color-red-950: #3a1f1f;
+
+  --vg-color-blue-400: #6ab0ff;
+  --vg-color-blue-950: #1c2a3a;
+}
+
+[data-theme="dark"],
+:root {
+  /* ── Semantic layer — what components consume ── */
+
+  /* Surfaces */
+  --vg-bg: var(--vg-color-slate-950);
+  --vg-surface: var(--vg-color-slate-900);
+  --vg-surface-2: var(--vg-color-slate-800);
+  --vg-surface-hover: var(--vg-color-slate-750);
+
+  /* Borders */
+  --vg-border: var(--vg-color-slate-700);
+  --vg-border-strong: var(--vg-color-slate-600);
+
+  /* Text */
+  --vg-text: var(--vg-color-slate-100);
+  --vg-text-muted: var(--vg-color-slate-300);
+  --vg-text-subtle: var(--vg-color-slate-400);
+  --vg-text-on-accent: var(--vg-color-slate-950);
+
+  /* Accent */
+  --vg-accent: var(--vg-color-coral-500);
+  --vg-accent-hover: var(--vg-color-coral-400);
+  --vg-accent-bg: var(--vg-color-coral-950);
+
+  /* Status */
+  --vg-warn: var(--vg-color-amber-500);
+  --vg-warn-bg: var(--vg-color-amber-950);
+  --vg-error: var(--vg-color-red-500);
+  --vg-error-bg: var(--vg-color-red-950);
+  --vg-info: var(--vg-color-blue-400);
+  --vg-info-bg: var(--vg-color-blue-950);
+
+  /* Effects */
+  --vg-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --vg-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --vg-focus-ring: 0 0 0 2px var(--vg-accent);
+}

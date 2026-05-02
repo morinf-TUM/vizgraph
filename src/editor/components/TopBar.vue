@@ -200,7 +200,9 @@ const showTickControls = computed(() => execution.tickCount > 1);
   align-items: center;
   gap: 16px;
   padding: 8px 12px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--vg-border);
+  background: var(--vg-surface);
+  color: var(--vg-text);
 }
 .top-bar__left {
   display: flex;
@@ -208,7 +210,7 @@ const showTickControls = computed(() => execution.tickCount > 1);
   align-items: baseline;
 }
 .top-bar__dirty {
-  color: #b45309;
+  color: var(--vg-warn);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -222,14 +224,14 @@ const showTickControls = computed(() => execution.tickCount > 1);
   border: 1px solid;
 }
 .top-bar__mode--edit {
-  border-color: #d0d7de;
-  color: #6b7280;
-  background: #fff;
+  border-color: var(--vg-border);
+  color: var(--vg-text-muted);
+  background: var(--vg-surface);
 }
 .top-bar__mode--inspect {
-  border-color: #2563eb;
-  color: #1e40af;
-  background: #dbeafe;
+  border-color: var(--vg-accent);
+  color: var(--vg-accent);
+  background: var(--vg-accent-bg);
 }
 .top-bar__actions {
   display: flex;
@@ -239,35 +241,36 @@ const showTickControls = computed(() => execution.tickCount > 1);
 .top-bar__sep {
   width: 1px;
   height: 18px;
-  background: #d0d7de;
+  background: var(--vg-border);
   margin: 0 4px;
 }
 .top-bar__actions button {
   padding: 4px 10px;
   font-size: 12px;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--vg-border);
   border-radius: 4px;
-  background: #fff;
+  background: var(--vg-surface);
+  color: var(--vg-text);
   cursor: pointer;
 }
 .top-bar__actions button:disabled {
-  color: #9ca3af;
+  color: var(--vg-text-subtle);
   cursor: not-allowed;
 }
 .top-bar__actions button:not(:disabled):hover {
-  background: #f1f5f9;
+  background: var(--vg-surface-2);
 }
 .top-bar__file-input {
   display: none;
 }
 .top-bar__tick {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--vg-text-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .top-bar__error {
   margin-left: auto;
-  color: #b91c1c;
+  color: var(--vg-error);
   font-size: 12px;
 }
 </style>

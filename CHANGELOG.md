@@ -4,6 +4,15 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Backlog: dark theme + a11y audit (2026-05-02)
+- Single n8n-style dark palette in `src/styles/theme.css`, structured as a **primitive layer** (`--vg-color-*`, raw values, never consumed by components) and a **semantic layer** (`--vg-*`, what components read). Components consume only semantic tokens; reaching for a primitive is a smell.
+- Selector `[data-theme="dark"], :root` future-proofs the toggle: a sibling `[data-theme="light"] { … }` block adds a light theme with zero component changes. `<html data-theme="dark">` is set in `index.html`; no runtime toggle, no `useTheme` composable, no `prefers-color-scheme` (out-of-scope per design).
+- New `docs/theming.md` is the semantic-token contract for contributors — every token's intended use, plus the rule that any new use case adds a new semantic token rather than reaching into primitives.
+- 7 Vue components swept: `App.vue`, `TopBar.vue`, `Palette.vue`, `PropertyPanel.vue`, `ValidationPanel.vue`, `CustomNode.vue`, `CommentNode.vue`. `CanvasView.vue` had no color rules to sweep. Element Plus `var(--el-*-, #fallback)` patterns kept their `--el-*` reference; only the fallback hex was retargeted to a `var(--vg-*)` semantic token. A small set of root-wrapper rules gained explicit `color`/`background` declarations where the original light-theme stylesheet relied on browser-default black-on-white inheritance.
+- New e2e gate `tests/e2e/a11y.spec.ts` runs `@axe-core/playwright` against the editor at `wcag2a/aa` + `wcag21a/aa`, asserting zero `serious`/`critical` violations. Fixed one pre-existing a11y bug surfaced during baseline calibration: VueFlow Controls buttons were unlabeled — replaced with the package's named-slot API (`#control-zoom-in`, `#control-zoom-out`, `#control-fit-view`, `#control-interactive`), each rendering a `ControlButton` with an `aria-label` and a lucide icon. The slot approach removes a runtime DOM mutation and keeps the labels declarative.
+- Dev-dep added: `@axe-core/playwright`.
+- Total gates: 33 Vitest files / 240 cases + 9 Playwright cases (including the new a11y gate). lint / typecheck / format / build all green.
+
 ### Backlog: comments / annotations on the canvas (2026-05-02)
 - New `Comment` Zod schema and inferred TS type in `src/document/types.ts` (`{ id, text, position, size?, color? }`); `GraphSchema.comments` is `z.array(CommentSchema).default([])` so existing v1 documents without comments still parse — no schema-version bump.
 - `documentStore` mutators: `addComment`, `removeComment`, `moveComment`, `updateComment`. `useCanvasOperations` adds `addCommentAt`, `removeComment`, `moveComment`, `editCommentText`, all wrapped in `history.transact` so Ctrl+Z reverts a single user action atomically.

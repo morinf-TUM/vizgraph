@@ -10,8 +10,9 @@ import {
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
 import { Background } from "@vue-flow/background";
-import { Controls } from "@vue-flow/controls";
+import { Controls, ControlButton } from "@vue-flow/controls";
 import { MiniMap } from "@vue-flow/minimap";
+import { ZoomIn, ZoomOut, Maximize2, Lock, Unlock } from "lucide-vue-next";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useCanvasOperations } from "../composables/useCanvasOperations";
@@ -20,7 +21,19 @@ import CommentNode from "./CommentNode.vue";
 
 const docStore = useDocumentStore();
 const editorStore = useEditorStore();
-const { fitView } = useVueFlow();
+const {
+  fitView,
+  zoomIn,
+  zoomOut,
+  setInteractive,
+  nodesDraggable,
+  nodesConnectable,
+  elementsSelectable,
+} = useVueFlow();
+
+const isInteractive = computed(
+  () => nodesDraggable.value || nodesConnectable.value || elementsSelectable.value,
+);
 
 // Expose VueFlow's fitView to the global keyboard shortcut layer (the F key)
 // without forcing useShortcuts to be a descendant of the canvas. The store
@@ -151,7 +164,32 @@ const onEdgesChange = (changes: EdgeChange[]): void => {
       </template>
       <Background />
       <MiniMap />
-      <Controls />
+      <Controls>
+        <template #control-zoom-in>
+          <ControlButton aria-label="Zoom in" @click="zoomIn()">
+            <ZoomIn />
+          </ControlButton>
+        </template>
+        <template #control-zoom-out>
+          <ControlButton aria-label="Zoom out" @click="zoomOut()">
+            <ZoomOut />
+          </ControlButton>
+        </template>
+        <template #control-fit-view>
+          <ControlButton aria-label="Fit view" @click="fitView()">
+            <Maximize2 />
+          </ControlButton>
+        </template>
+        <template #control-interactive>
+          <ControlButton
+            aria-label="Toggle interaction mode"
+            @click="setInteractive(!isInteractive)"
+          >
+            <Unlock v-if="isInteractive" />
+            <Lock v-else />
+          </ControlButton>
+        </template>
+      </Controls>
     </VueFlow>
   </div>
 </template>

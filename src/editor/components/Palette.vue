@@ -70,7 +70,7 @@ const onAdd = (type: string): void => {
   font-size: 12px;
   font-weight: 600;
   margin: 0 0 8px;
-  color: #374151;
+  color: var(--vg-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -79,18 +79,18 @@ const onAdd = (type: string): void => {
   padding: 4px 8px;
   margin-bottom: 8px;
   font-size: 12px;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--vg-border);
   border-radius: 4px;
 }
 .palette__empty {
-  color: #6b7280;
+  color: var(--vg-text-muted);
   font-size: 11px;
   margin: 6px 0;
 }
 .palette__category {
   font-size: 10px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--vg-text-muted);
   margin: 12px 0 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -101,14 +101,15 @@ const onAdd = (type: string): void => {
   text-align: left;
   padding: 6px 10px;
   margin-bottom: 4px;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--vg-border);
   border-radius: 4px;
-  background: #fff;
+  background: var(--vg-surface);
+  color: var(--vg-text);
   font-size: 12px;
   cursor: pointer;
 }
 .palette__item:hover {
-  background: #f1f5f9;
-  border-color: #2563eb;
+  background: var(--vg-surface-2);
+  border-color: var(--vg-accent);
 }
 </style>

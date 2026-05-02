@@ -70,9 +70,9 @@ const totalCount = computed(() => validationStore.diagnostics.length);
 
 <style scoped>
 .validation-panel {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--vg-border);
   padding: 12px;
-  background: #fff;
+  background: var(--vg-surface);
   font-size: 12px;
   max-height: 220px;
   overflow: auto;
@@ -84,19 +84,19 @@ const totalCount = computed(() => validationStore.diagnostics.length);
   font-size: 12px;
   font-weight: 600;
   margin: 0 0 8px;
-  color: #374151;
+  color: var(--vg-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .validation-panel__count {
-  background: #ef4444;
-  color: white;
+  background: var(--vg-error);
+  color: var(--vg-text-on-accent);
   border-radius: 999px;
   padding: 1px 8px;
   font-size: 10px;
 }
 .validation-panel__empty {
-  color: #6b7280;
+  color: var(--vg-text-muted);
 }
 .validation-panel__heading {
   font-size: 10px;
@@ -106,10 +106,10 @@ const totalCount = computed(() => validationStore.diagnostics.length);
   letter-spacing: 0.05em;
 }
 .validation-panel__heading--error {
-  color: #b91c1c;
+  color: var(--vg-error);
 }
 .validation-panel__heading--warning {
-  color: #b45309;
+  color: var(--vg-warn);
 }
 .validation-panel__item {
   display: grid;
@@ -126,11 +126,11 @@ const totalCount = computed(() => validationStore.diagnostics.length);
   border-radius: 4px;
 }
 .validation-panel__item:hover {
-  background: #f3f4f6;
-  border-color: #d0d7de;
+  background: var(--vg-surface-hover);
+  border-color: var(--vg-border);
 }
 .validation-panel__code {
-  color: #6b7280;
+  color: var(--vg-text-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   white-space: nowrap;
@@ -138,12 +138,12 @@ const totalCount = computed(() => validationStore.diagnostics.length);
   text-overflow: ellipsis;
 }
 .validation-panel__message {
-  color: #111827;
+  color: var(--vg-text);
 }
 .validation-panel__item--error .validation-panel__code {
-  color: #b91c1c;
+  color: var(--vg-error);
 }
 .validation-panel__item--warning .validation-panel__code {
-  color: #b45309;
+  color: var(--vg-warn);
 }
 </style>

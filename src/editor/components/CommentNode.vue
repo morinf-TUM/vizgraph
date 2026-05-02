@@ -76,14 +76,14 @@ const onKeydown = (event: KeyboardEvent): void => {
   min-width: 160px;
   min-height: 40px;
   padding: 8px 10px;
-  border: 1px dashed #f59e0b;
+  border: 1px dashed var(--vg-warn);
   border-radius: 6px;
-  background: #fffbeb;
+  background: var(--vg-warn-bg);
   font-size: 12px;
-  color: #78350f;
+  color: var(--vg-text);
   white-space: pre-wrap;
   word-break: break-word;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--vg-shadow-sm);
 }
 .comment-node__text {
   cursor: text;

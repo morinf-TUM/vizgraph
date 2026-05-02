@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 test("editor has no serious or critical accessibility violations", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("canvas-root")).toBeVisible();
-  await expect(page.locator(".vue-flow__controls").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Zoom in" })).toBeVisible();
 
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

@@ -19,7 +19,21 @@ Replace the current ad-hoc light styling with a single n8n-style dark theme, def
 
 ### New file: `src/styles/theme.css`
 
-Single `:root` block. Imported once from `src/main.ts` (after any Vue Flow CSS imports, so it wins specificity ties). Exports CSS custom properties only — no selectors, no resets, no Element Plus overrides.
+Imported once from `src/main.ts` (after any Vue Flow CSS imports, so it wins specificity ties). Exports CSS custom properties only — no selectors, no resets, no Element Plus overrides.
+
+Two-layer token structure:
+
+- **Primitive layer** (`:root`) — raw palette values (`--vg-color-*`). Never consumed by components.
+- **Semantic layer** (`[data-theme="dark"], :root`) — what components consume (`--vg-bg`, `--vg-accent`, …). Each semantic token is `var(--vg-color-*)`.
+
+Two consequences for future modification:
+
+1. Adding a light / high-contrast / user theme is a sibling block — `[data-theme="light"] { --vg-bg: var(--vg-color-…); … }` — with zero component changes. A future toggle is one line setting `data-theme` on `<html>`.
+2. Brand recolors hit one primitive; intent remaps hit one semantic; component CSS never moves.
+
+### New file: `docs/theming.md`
+
+A one-page contract listing every semantic token and its intended use (e.g. "`--vg-surface-2` is for raised cards / inset wells, NOT for selected state — use `--vg-accent-bg` for selection"). Single source of truth for contributors. Updated whenever a new token lands.
 
 ### Sweep targets
 
@@ -44,34 +58,60 @@ All values are starting points. The implementation phase calibrates anything axe
 
 ```css
 :root {
+  /* ── Primitive layer — raw palette, never consumed by components ── */
+  --vg-color-slate-950: #1a1d23;
+  --vg-color-slate-900: #23272e;
+  --vg-color-slate-800: #2c313a;
+  --vg-color-slate-750: #323843;
+  --vg-color-slate-700: #3a3f47;
+  --vg-color-slate-600: #4a505a;
+  --vg-color-slate-300: #9aa1ad;
+  --vg-color-slate-400: #6b7280;
+  --vg-color-slate-100: #e6e8eb;
+
+  --vg-color-coral-500: #ff6d5a;
+  --vg-color-coral-400: #ff8676;
+  --vg-color-coral-950: #3a2522;
+
+  --vg-color-amber-500: #f5a623;
+  --vg-color-amber-950: #3a2c14;
+  --vg-color-red-500: #ff5c5c;
+  --vg-color-red-950: #3a1f1f;
+  --vg-color-blue-400: #6ab0ff;
+  --vg-color-blue-950: #1c2a3a;
+}
+
+[data-theme="dark"], :root {
+  /* ── Semantic layer — what components consume ── */
+
   /* Surfaces */
-  --vg-bg: #1a1d23;
-  --vg-surface: #23272e;
-  --vg-surface-2: #2c313a;
-  --vg-surface-hover: #323843;
+  --vg-bg: var(--vg-color-slate-950);
+  --vg-surface: var(--vg-color-slate-900);
+  --vg-surface-2: var(--vg-color-slate-800);
+  --vg-surface-hover: var(--vg-color-slate-750);
 
   /* Borders */
-  --vg-border: #3a3f47;
-  --vg-border-strong: #4a505a;
+  --vg-border: var(--vg-color-slate-700);
+  --vg-border-strong: var(--vg-color-slate-600);
 
   /* Text */
-  --vg-text: #e6e8eb;
-  --vg-text-muted: #9aa1ad;
-  --vg-text-subtle: #6b7280;
-  --vg-text-on-accent: #1a1d23;
+  --vg-text: var(--vg-color-slate-100);
+  --vg-text-muted: var(--vg-color-slate-300);
+  --vg-text-subtle: var(--vg-color-slate-400);
+  --vg-text-on-accent: var(--vg-color-slate-950);
 
   /* Accent (n8n coral) */
-  --vg-accent: #ff6d5a;
-  --vg-accent-hover: #ff8676;
-  --vg-accent-bg: #3a2522;
+  --vg-accent: var(--vg-color-coral-500);
+  --vg-accent-hover: var(--vg-color-coral-400);
+  --vg-accent-bg: var(--vg-color-coral-950);
 
   /* Status */
-  --vg-warn: #f5a623;
-  --vg-warn-bg: #3a2c14;
-  --vg-error: #ff5c5c;
-  --vg-error-bg: #3a1f1f;
-  --vg-info: #6ab0ff;
-  --vg-info-bg: #1c2a3a;
+  --vg-warn: var(--vg-color-amber-500);
+  --vg-warn-bg: var(--vg-color-amber-950);
+  --vg-error: var(--vg-color-red-500);
+  --vg-error-bg: var(--vg-color-red-950);
+  --vg-info: var(--vg-color-blue-400);
+  --vg-info-bg: var(--vg-color-blue-950);
 
   /* Effects */
   --vg-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
@@ -79,6 +119,8 @@ All values are starting points. The implementation phase calibrates anything axe
   --vg-focus-ring: 0 0 0 2px var(--vg-accent);
 }
 ```
+
+**Component contract:** components read only the semantic layer (`var(--vg-bg)`, etc.). Reaching for primitives (`var(--vg-color-coral-500)`) from a component is a smell — it means the component has its own intent that wants its own semantic token. Add the token, don't bypass the layer.
 
 ### Token-to-current-color mapping
 
@@ -125,8 +167,9 @@ Not applicable (CSS-only change). The axe test is the regression gate.
 ## Implementation order (preview, fleshed out by writing-plans)
 
 1. Add `@axe-core/playwright` devDep.
-2. Create `src/styles/theme.css` with the palette above; import in `main.ts`.
-3. Sweep components in order: App.vue → TopBar → Palette → PropertyPanel → ValidationPanel → CanvasView → CustomNode → CommentNode.
-4. Add `tests/e2e/a11y.spec.ts`; calibrate any failing tokens.
-5. Update `PROJECT_MEMORY.md` + `CHANGELOG.md`.
-6. All gates green; merge to master.
+2. Create `src/styles/theme.css` with the two-layer palette above; import in `main.ts`. Set `data-theme="dark"` on `<html>` in `index.html` so the attribute selector matches even though `:root` already does.
+3. Write `docs/theming.md` listing every semantic token + intended use.
+4. Sweep components in order: App.vue → TopBar → Palette → PropertyPanel → ValidationPanel → CanvasView → CustomNode → CommentNode. Components consume semantic tokens only.
+5. Add `tests/e2e/a11y.spec.ts`; calibrate any failing tokens by editing primitives.
+6. Update `PROJECT_MEMORY.md` + `CHANGELOG.md`.
+7. All gates green; merge to master.

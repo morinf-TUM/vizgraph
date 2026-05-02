@@ -38,6 +38,7 @@
     "zod": "^4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@eslint/js": "^10",
     "@playwright/test": "^1.59.1",
     "@types/node": "^22",

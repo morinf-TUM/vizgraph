@@ -32,6 +32,29 @@ onMounted(() => {
     // because the keyboard shortcut layer is fire-and-forget.
     void fitView();
   });
+
+  // Add aria-labels to VueFlow Controls buttons for a11y.
+  // These buttons are rendered by @vue-flow/controls and have no accessible names.
+  const controls = document.querySelector(".vue-flow__controls");
+  if (controls) {
+    const zoomInBtn = controls.querySelector(".vue-flow__controls-zoomin");
+    const zoomOutBtn = controls.querySelector(".vue-flow__controls-zoomout");
+    const fitViewBtn = controls.querySelector(".vue-flow__controls-fitview");
+    const interactiveBtn = controls.querySelector(".vue-flow__controls-interactive");
+
+    if (zoomInBtn && !zoomInBtn.getAttribute("aria-label")) {
+      zoomInBtn.setAttribute("aria-label", "Zoom in");
+    }
+    if (zoomOutBtn && !zoomOutBtn.getAttribute("aria-label")) {
+      zoomOutBtn.setAttribute("aria-label", "Zoom out");
+    }
+    if (fitViewBtn && !fitViewBtn.getAttribute("aria-label")) {
+      fitViewBtn.setAttribute("aria-label", "Fit view to selection");
+    }
+    if (interactiveBtn && !interactiveBtn.getAttribute("aria-label")) {
+      interactiveBtn.setAttribute("aria-label", "Toggle interaction mode");
+    }
+  }
 });
 onUnmounted(() => {
   editorStore.setFitViewFn(undefined);

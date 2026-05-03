@@ -54,6 +54,37 @@ describe("checkIsolatedNodes", () => {
     const doc = docWith([N(1, "Print")], [E("e1", 1, 1, "in", "in")]);
     expect(checkIsolatedNodes(doc.graph)).toEqual([]);
   });
+
+  it("does not emit ISOLATED_NODE for a Subgraph container alone", () => {
+    const doc = docWith(
+      [{ id: 11, type: "Subgraph", position: { x: 0, y: 0 }, parameters: {} }],
+      [],
+    );
+    const out = checkIsolatedNodes(doc.graph);
+    expect(out.find((d) => d.code === CODES.ISOLATED_NODE)).toBeUndefined();
+  });
+
+  it("does not emit ISOLATED_NODE for SubgraphInput / SubgraphOutput pseudo-nodes", () => {
+    const doc = docWith(
+      [
+        {
+          id: 1,
+          type: "SubgraphInput",
+          position: { x: 0, y: 0 },
+          parameters: { name: "x", portType: "int" },
+        },
+        {
+          id: 2,
+          type: "SubgraphOutput",
+          position: { x: 0, y: 50 },
+          parameters: { name: "y", portType: "int" },
+        },
+      ],
+      [],
+    );
+    const out = checkIsolatedNodes(doc.graph);
+    expect(out.find((d) => d.code === CODES.ISOLATED_NODE)).toBeUndefined();
+  });
 });
 
 describe("checkUnconnectedInputs", () => {

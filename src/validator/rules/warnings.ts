@@ -1,5 +1,10 @@
 import type { Graph } from "../../document/types";
 import type { NodeTypeRegistry } from "../../registry/registry";
+import {
+  SUBGRAPH_INPUT_NODE_TYPE,
+  SUBGRAPH_NODE_TYPE,
+  SUBGRAPH_OUTPUT_NODE_TYPE,
+} from "../../document/subgraph";
 import { CODES } from "../codes";
 import { warning, type Diagnostic } from "../diagnostics";
 
@@ -16,6 +21,13 @@ export const checkIsolatedNodes = (graph: Graph, path: number[] = []): Diagnosti
   const incident = incidentNodeIds(graph);
   const diagnostics: Diagnostic[] = [];
   for (const node of graph.nodes) {
+    if (
+      node.type === SUBGRAPH_NODE_TYPE ||
+      node.type === SUBGRAPH_INPUT_NODE_TYPE ||
+      node.type === SUBGRAPH_OUTPUT_NODE_TYPE
+    ) {
+      continue;
+    }
     if (!incident.has(node.id)) {
       diagnostics.push(
         warning({

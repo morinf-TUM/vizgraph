@@ -1,5 +1,6 @@
 import type { Comment, EdgeEndpoint, GraphEdge, GraphNode, Position } from "../../document/types";
 import { defaultRegistry } from "../../registry/registry";
+import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useHistoryStore } from "../stores/historyStore";
@@ -124,6 +125,16 @@ export const useCanvasOperations = () => {
     });
   };
 
+  const enterSubgraph = (id: number): void => {
+    const node = docStore.currentLevelGraph.nodes.find((n) => n.id === id);
+    if (!node || node.type !== SUBGRAPH_NODE_TYPE) return;
+    editorStore.enterSubgraph(id);
+  };
+
+  const exitToParent = (): void => {
+    editorStore.exitSubgraph();
+  };
+
   return {
     addNodeAt,
     removeNode,
@@ -138,5 +149,7 @@ export const useCanvasOperations = () => {
     removeComment,
     moveComment,
     editCommentText,
+    enterSubgraph,
+    exitToParent,
   };
 };

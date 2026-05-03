@@ -6,6 +6,7 @@ import {
   type Connection,
   type EdgeChange,
   type NodeChange,
+  type NodeMouseEvent,
 } from "@vue-flow/core";
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
@@ -16,6 +17,7 @@ import { ZoomIn, ZoomOut, Maximize2, Lock, Unlock } from "lucide-vue-next";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useCanvasOperations } from "../composables/useCanvasOperations";
+import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
 import CustomNode from "./CustomNode.vue";
 import CommentNode from "./CommentNode.vue";
 
@@ -57,14 +59,14 @@ const ops = useCanvasOperations();
 const COMMENT_PREFIX = "c:";
 
 const flowNodes = computed(() => {
-  const nodes = docStore.nodes.map((n) => ({
+  const nodes = docStore.currentLevelGraph.nodes.map((n) => ({
     id: String(n.id),
     type: "custom",
     position: { x: n.position.x, y: n.position.y },
     data: { node: n },
     selected: editorStore.selectedNodeIds.has(n.id),
   }));
-  const commentNodes = docStore.comments.map((c) => ({
+  const commentNodes = docStore.currentLevelGraph.comments.map((c) => ({
     id: COMMENT_PREFIX + c.id,
     type: "comment",
     position: { x: c.position.x, y: c.position.y },
@@ -76,7 +78,7 @@ const flowNodes = computed(() => {
 });
 
 const flowEdges = computed(() =>
-  docStore.edges.map((e) => ({
+  docStore.currentLevelGraph.edges.map((e) => ({
     id: e.id,
     source: String(e.source.node),
     target: String(e.target.node),
@@ -84,6 +86,10 @@ const flowEdges = computed(() =>
     targetHandle: e.target.port,
     selected: editorStore.selectedEdgeIds.has(e.id),
   })),
+);
+
+const defaultViewport = computed(
+  () => docStore.currentLevelGraph.viewport ?? { x: 0, y: 0, zoom: 1 },
 );
 
 const onConnect = (connection: Connection): void => {
@@ -133,6 +139,13 @@ const onNodesChange = (changes: NodeChange[]): void => {
   }
 };
 
+const onNodeDoubleClick = ({ node }: NodeMouseEvent): void => {
+  const inner = (node.data as { node?: { type: string } } | undefined)?.node;
+  if (!inner) return;
+  if (inner.type !== SUBGRAPH_NODE_TYPE) return;
+  ops.enterSubgraph(Number(node.id));
+};
+
 const onEdgesChange = (changes: EdgeChange[]): void => {
   for (const change of changes) {
     if (change.type === "remove") {
@@ -150,11 +163,12 @@ const onEdgesChange = (changes: EdgeChange[]): void => {
     <VueFlow
       :nodes="flowNodes"
       :edges="flowEdges"
-      :default-viewport="{ x: 0, y: 0, zoom: 1 }"
+      :default-viewport="defaultViewport"
       fit-view-on-init
       @connect="onConnect"
       @nodes-change="onNodesChange"
       @edges-change="onEdgesChange"
+      @node-double-click="onNodeDoubleClick"
     >
       <template #node-custom="props">
         <CustomNode :data="props.data" />

@@ -20,7 +20,7 @@ const label = computed(() => props.data.node.name ?? props.data.node.type);
 
 const overlay = computed(() => {
   if (executionStore.mode !== "inspect") return undefined;
-  return executionStore.overlayByNodeId.get(props.data.node.id);
+  return executionStore.overlayByLocalNodeId.get(props.data.node.id);
 });
 
 const formatValue = (v: unknown): string => {

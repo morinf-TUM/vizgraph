@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
+import { SUBGRAPH_INPUT_NODE_TYPE, SUBGRAPH_OUTPUT_NODE_TYPE } from "../../document/subgraph";
 import { useHistoryStore } from "../stores/historyStore";
 import { useExecutionStore } from "../stores/executionStore";
 import { useFileIO } from "../composables/useFileIO";
@@ -70,6 +71,22 @@ const onAddComment = (): void => {
   ops.addCommentAt("New comment", { x: 80, y: 80 });
 };
 
+const groupDisabled = computed<boolean>(() => {
+  if (editorStore.selectedNodeIds.size === 0) return true;
+  const nodes = docStore.currentLevelGraph.nodes;
+  for (const id of editorStore.selectedNodeIds) {
+    const node = nodes.find((n) => n.id === id);
+    if (node?.type === SUBGRAPH_INPUT_NODE_TYPE || node?.type === SUBGRAPH_OUTPUT_NODE_TYPE) {
+      return true;
+    }
+  }
+  return false;
+});
+
+const onGroup = (): void => {
+  ops.groupSelection();
+};
+
 const onImportRun = (): void => {
   runResultInput.value?.click();
 };
@@ -131,6 +148,9 @@ const showTickControls = computed(() => execution.tickCount > 1);
       <span class="top-bar__sep" />
       <button type="button" data-testid="topbar-tidy" @click="onTidy">Tidy</button>
       <button type="button" data-testid="topbar-add-comment" @click="onAddComment">Comment</button>
+      <button type="button" data-testid="topbar-group" :disabled="groupDisabled" @click="onGroup">
+        Group
+      </button>
       <span class="top-bar__sep" />
       <button type="button" data-testid="topbar-import-run" @click="onImportRun">
         Import RunResult

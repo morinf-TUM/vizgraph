@@ -1,4 +1,4 @@
-import type { GraphDocument } from "../../document/types";
+import type { Graph } from "../../document/types";
 import { CODES } from "../codes";
 import { error, type Diagnostic } from "../diagnostics";
 
@@ -11,9 +11,9 @@ import { error, type Diagnostic } from "../diagnostics";
 // GraphNode, leaving no way for it to point at a missing node id. Revisit
 // if/when a graph-level frequency map is added.
 
-export const checkInvalidFrequency = (doc: GraphDocument): Diagnostic[] => {
+export const checkInvalidFrequency = (graph: Graph, path: number[] = []): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
-  for (const node of doc.graph.nodes) {
+  for (const node of graph.nodes) {
     const f = node.frequency_hz;
     if (f === undefined || f === null) continue;
     if (!Number.isFinite(f) || f <= 0) {
@@ -23,6 +23,7 @@ export const checkInvalidFrequency = (doc: GraphDocument): Diagnostic[] => {
           message: `Node ${String(node.id)} has invalid frequency_hz: ${String(f)}.`,
           node_id: node.id,
           field: "frequency_hz",
+          ...(path.length > 0 ? { path } : {}),
         }),
       );
     }

@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useDocumentStore } from "../../../../src/editor/stores/documentStore";
+import { useEditorStore } from "../../../../src/editor/stores/editorStore";
+import { SUBGRAPH_NODE_TYPE } from "../../../../src/document/subgraph";
+import type { GraphDocument } from "../../../../src/document/types";
 
 describe("documentStore", () => {
   beforeEach(() => {
@@ -180,5 +183,100 @@ describe("documentStore", () => {
     store.addComment({ text: "x", position: { x: 0, y: 0 } });
     store.removeComment("c-not-real");
     expect(store.comments).toHaveLength(1);
+  });
+
+  describe("path-aware mutations (currentPath != [])", () => {
+    const docWithEmptySubgraph = (subgraphId: number): GraphDocument => ({
+      version: 1,
+      graph: {
+        nodes: [
+          {
+            id: subgraphId,
+            type: SUBGRAPH_NODE_TYPE,
+            position: { x: 0, y: 0 },
+            parameters: {
+              children: { version: 1, graph: { nodes: [], edges: [], comments: [] } },
+            },
+          },
+        ],
+        edges: [],
+        comments: [],
+      },
+    });
+
+    it("addNode targets the inner graph when currentPath addresses a Subgraph", () => {
+      const store = useDocumentStore();
+      const editor = useEditorStore();
+      store.replaceDocument(docWithEmptySubgraph(1));
+      editor.setCurrentPath([1]);
+
+      const inner = store.addNode({ type: "Constant", position: { x: 10, y: 10 } });
+      expect(inner.id).toBe(1); // inner graph is empty, so first id is 1
+
+      // Outer graph stays untouched (it still has only the Subgraph node).
+      expect(store.doc.graph.nodes).toHaveLength(1);
+      expect(store.doc.graph.nodes[0]?.type).toBe(SUBGRAPH_NODE_TYPE);
+
+      const subgraphNode = store.doc.graph.nodes[0];
+      const childDoc = (subgraphNode?.parameters as { children: GraphDocument }).children;
+      expect(childDoc.graph.nodes).toHaveLength(1);
+      expect(childDoc.graph.nodes[0]?.type).toBe("Constant");
+
+      // currentLevelGraph selectors (nodes/edges/comments) reflect the inner graph.
+      expect(store.nodes).toHaveLength(1);
+      expect(store.nodes[0]?.type).toBe("Constant");
+    });
+
+    it("removeNode at depth 1 cascades inner edges only", () => {
+      const store = useDocumentStore();
+      const editor = useEditorStore();
+      store.replaceDocument(docWithEmptySubgraph(99));
+      editor.setCurrentPath([99]);
+
+      const a = store.addNode({ type: "Constant", position: { x: 0, y: 0 } });
+      const b = store.addNode({ type: "Print", position: { x: 100, y: 0 } });
+      store.addEdge({
+        source: { node: a.id, port: "out" },
+        target: { node: b.id, port: "in" },
+      });
+      expect(store.edges).toHaveLength(1);
+
+      store.removeNode(a.id);
+      expect(store.nodes.map((n) => n.id)).toEqual([b.id]);
+      expect(store.edges).toEqual([]);
+
+      // Outer graph still has just the Subgraph node and no edges.
+      expect(store.doc.graph.edges).toEqual([]);
+      expect(store.doc.graph.nodes).toHaveLength(1);
+    });
+
+    it("addComment targets the inner graph", () => {
+      const store = useDocumentStore();
+      const editor = useEditorStore();
+      store.replaceDocument(docWithEmptySubgraph(1));
+      editor.setCurrentPath([1]);
+
+      const c = store.addComment({ text: "inner", position: { x: 5, y: 5 } });
+      expect(c.id).toBe("c1");
+      expect(store.comments).toHaveLength(1);
+      expect(store.doc.graph.comments).toEqual([]);
+    });
+
+    it("throws when currentPath references a non-Subgraph node", () => {
+      const store = useDocumentStore();
+      const editor = useEditorStore();
+      store.replaceDocument({
+        version: 1,
+        graph: {
+          nodes: [{ id: 5, type: "Constant", position: { x: 0, y: 0 }, parameters: {} }],
+          edges: [],
+          comments: [],
+        },
+      });
+      editor.setCurrentPath([5]);
+      expect(() => store.addNode({ type: "Print", position: { x: 0, y: 0 } })).toThrow(
+        /not a Subgraph/,
+      );
+    });
   });
 });

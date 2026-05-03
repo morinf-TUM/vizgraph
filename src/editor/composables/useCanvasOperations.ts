@@ -1,9 +1,17 @@
 import type { Comment, EdgeEndpoint, GraphEdge, GraphNode, Position } from "../../document/types";
 import { defaultRegistry } from "../../registry/registry";
+import {
+  SUBGRAPH_INPUT_NODE_TYPE,
+  SUBGRAPH_NODE_TYPE,
+  SUBGRAPH_OUTPUT_NODE_TYPE,
+  type SubgraphParameters,
+} from "../../document/subgraph";
+import { edgeIdFor } from "../../document/ids";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useHistoryStore } from "../stores/historyStore";
 import { canConnect, type ConnectCheck } from "../canConnect";
+import { groupSelection as groupSelectionImpl } from "./groupSelection";
 
 // Bridge layer between the canvas/UI and the document/editor stores. Every
 // mutation routed through here flips the dirty flag and is wrapped in a
@@ -85,6 +93,73 @@ export const useCanvasOperations = () => {
     });
   };
 
+  // Rename a SubgraphInput or SubgraphOutput pseudo-node port.
+  // In addition to updating parameters.name on the inner node, this patches
+  // all edges at the parent level that reference the old port name on the
+  // enclosing Subgraph node, keeping outer wiring consistent.
+  const renamePseudoPort = (id: number, newName: string): void => {
+    const path = editorStore.currentPath;
+    if (path.length === 0) return; // must be inside a subgraph
+    const node = docStore.nodes.find((n) => n.id === id);
+    if (!node) return;
+    const isPseudoInput = node.type === SUBGRAPH_INPUT_NODE_TYPE;
+    const isPseudoOutput = node.type === SUBGRAPH_OUTPUT_NODE_TYPE;
+    if (!isPseudoInput && !isPseudoOutput) return;
+    const oldName = (node.parameters as { name?: string }).name ?? "";
+    if (oldName === newName) return;
+    const subgraphNodeId = path[path.length - 1]!;
+
+    // Traverse to the parent graph BEFORE transact so we can bail out without
+    // leaving a no-op snapshot on the undo stack.
+    const parentPath = path.slice(0, -1);
+    let parentGraph = docStore.doc.graph;
+    for (const stepId of parentPath) {
+      const stepNode = parentGraph.nodes.find((n) => n.id === stepId);
+      const childDoc = stepNode ? (stepNode.parameters as SubgraphParameters).children : undefined;
+      if (!childDoc) return;
+      parentGraph = childDoc.graph;
+    }
+    // Bail out early if there are no outer edges to patch, avoiding an empty undo entry.
+    const affectedEdges = parentGraph.edges.filter(
+      (e) =>
+        (isPseudoInput && e.target.node === subgraphNodeId && e.target.port === oldName) ||
+        (isPseudoOutput && e.source.node === subgraphNodeId && e.source.port === oldName),
+    );
+    if (affectedEdges.length === 0) {
+      updateParameter(id, "name", newName);
+      return;
+    }
+
+    history.transact("Rename pseudo-port", () => {
+      // 1. Update the inner node's parameters.name.
+      docStore.updateParameter(id, "name", newName);
+      // 2. Patch outer edges that reference the old port name on the enclosing
+      //    Subgraph node. We mutate in-place rather than removeEdge/addEdge
+      //    because those helpers are bound to currentLevelGraph (the inner graph);
+      //    the parent graph is a deliberate exception to the normal pattern.
+      for (const edge of affectedEdges) {
+        if (isPseudoInput) {
+          edge.target = { node: subgraphNodeId, port: newName };
+          edge.id = edgeIdFor(
+            edge.source.node,
+            edge.source.port,
+            edge.target.node,
+            edge.target.port,
+          );
+        } else {
+          edge.source = { node: subgraphNodeId, port: newName };
+          edge.id = edgeIdFor(
+            edge.source.node,
+            edge.source.port,
+            edge.target.node,
+            edge.target.port,
+          );
+        }
+      }
+      editorStore.markDirty();
+    });
+  };
+
   const renameNode = (id: number, name: string | undefined): void => {
     if (docStore.nodes.findIndex((n) => n.id === id) < 0) return;
     history.transact("Rename node", () => {
@@ -124,6 +199,19 @@ export const useCanvasOperations = () => {
     });
   };
 
+  const enterSubgraph = (id: number): void => {
+    const node = docStore.currentLevelGraph.nodes.find((n) => n.id === id);
+    if (!node || node.type !== SUBGRAPH_NODE_TYPE) return;
+    editorStore.enterSubgraph(id);
+  };
+
+  const exitToParent = (): void => {
+    editorStore.exitSubgraph();
+  };
+
+  const groupSelection = (): GraphNode | undefined =>
+    groupSelectionImpl(docStore, editorStore, history);
+
   return {
     addNodeAt,
     removeNode,
@@ -133,10 +221,14 @@ export const useCanvasOperations = () => {
     removeEdge,
     removeSelected,
     updateParameter,
+    renamePseudoPort,
     renameNode,
     addCommentAt,
     removeComment,
     moveComment,
     editCommentText,
+    enterSubgraph,
+    exitToParent,
+    groupSelection,
   };
 };

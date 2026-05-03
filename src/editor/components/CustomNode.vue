@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Handle, Position as HandlePosition } from "@vue-flow/core";
-import type { GraphNode } from "../../document/types";
+import type { GraphDocument, GraphNode } from "../../document/types";
+import {
+  SUBGRAPH_INPUT_NODE_TYPE,
+  SUBGRAPH_NODE_TYPE,
+  SUBGRAPH_OUTPUT_NODE_TYPE,
+} from "../../document/subgraph";
 import { defaultRegistry } from "../../registry/registry";
 import { useExecutionStore } from "../stores/executionStore";
 
@@ -13,15 +18,59 @@ const props = defineProps<Props>();
 const registry = defaultRegistry();
 const executionStore = useExecutionStore();
 
-const desc = computed(() => registry.get(props.data.node.type));
+const node = computed(() => props.data.node);
+
+const branch = computed<"subgraph" | "subgraphInput" | "subgraphOutput" | "regular">(() => {
+  switch (node.value.type) {
+    case SUBGRAPH_NODE_TYPE:
+      return "subgraph";
+    case SUBGRAPH_INPUT_NODE_TYPE:
+      return "subgraphInput";
+    case SUBGRAPH_OUTPUT_NODE_TYPE:
+      return "subgraphOutput";
+    default:
+      return "regular";
+  }
+});
+
+const desc = computed(() =>
+  branch.value === "regular" ? registry.get(node.value.type) : undefined,
+);
 const inputs = computed(() => desc.value?.inputs ?? []);
 const outputs = computed(() => desc.value?.outputs ?? []);
-const label = computed(() => props.data.node.name ?? props.data.node.type);
+const label = computed(() => node.value.name ?? node.value.type);
 
 const overlay = computed(() => {
+  if (branch.value !== "regular") return undefined;
   if (executionStore.mode !== "inspect") return undefined;
-  return executionStore.overlayByNodeId.get(props.data.node.id);
+  return executionStore.overlayByLocalNodeId.get(node.value.id);
 });
+
+const subgraphLabel = computed(() => node.value.name ?? `Sub-graph #${node.value.id}`);
+
+const innerPseudoNodes = (kind: string) => {
+  const children = (node.value.parameters as { children?: GraphDocument }).children;
+  if (!children) return [];
+  return children.graph.nodes
+    .filter((n) => n.type === kind)
+    .slice()
+    .sort((a, b) => a.position.y - b.position.y || a.position.x - b.position.x)
+    .map((n) => (n.parameters as { name?: string }).name)
+    .filter((name): name is string => typeof name === "string" && name.length > 0)
+    .map((name) => ({ name }));
+};
+
+const subgraphInputs = computed(() =>
+  branch.value === "subgraph" ? innerPseudoNodes(SUBGRAPH_INPUT_NODE_TYPE) : [],
+);
+const subgraphOutputs = computed(() =>
+  branch.value === "subgraph" ? innerPseudoNodes(SUBGRAPH_OUTPUT_NODE_TYPE) : [],
+);
+
+const pseudoName = computed(() => (node.value.parameters as { name?: string }).name ?? "");
+const pseudoPortType = computed(
+  () => (node.value.parameters as { portType?: string }).portType ?? "",
+);
 
 const formatValue = (v: unknown): string => {
   if (v === null) return "null";
@@ -45,7 +94,9 @@ const formatDuration = (ns: number): string => {
 
 <template>
   <div
+    v-if="branch === 'regular'"
     class="custom-node"
+    :data-node-type="data.node.type"
     :class="{
       'custom-node--unknown': !desc,
       'custom-node--inspect': overlay,
@@ -97,6 +148,81 @@ const formatDuration = (ns: number): string => {
       <span v-else class="custom-node__duration">{{ formatDuration(overlay.duration_ns) }}</span>
     </div>
   </div>
+
+  <div
+    v-else-if="branch === 'subgraph'"
+    class="custom-node custom-node--subgraph"
+    :data-node-type="data.node.type"
+  >
+    <div class="custom-node__header">
+      <span class="custom-node__label">{{ subgraphLabel }}</span>
+      <span class="custom-node__type">{{ data.node.type }}</span>
+    </div>
+    <div class="custom-node__ports">
+      <div class="custom-node__inputs">
+        <div v-for="port in subgraphInputs" :key="`sub-in-${port.name}`" class="custom-node__port">
+          <Handle
+            :id="port.name"
+            type="target"
+            :position="HandlePosition.Left"
+            class="custom-node__handle"
+          />
+          <span class="custom-node__port-label">{{ port.name }}</span>
+        </div>
+      </div>
+      <div class="custom-node__outputs">
+        <div
+          v-for="port in subgraphOutputs"
+          :key="`sub-out-${port.name}`"
+          class="custom-node__port custom-node__port--out"
+        >
+          <span class="custom-node__port-label">{{ port.name }}</span>
+          <Handle
+            :id="port.name"
+            type="source"
+            :position="HandlePosition.Right"
+            class="custom-node__handle"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    v-else-if="branch === 'subgraphInput'"
+    class="pseudo-node pseudo-node--input"
+    :data-node-type="data.node.type"
+  >
+    <span class="pseudo-node__glyph">▶</span>
+    <span v-if="pseudoName" class="pseudo-node__name">{{ pseudoName }}</span>
+    <span v-else class="pseudo-node__name pseudo-node__missing">(unnamed)</span>
+    <span class="pseudo-node__sep">:</span>
+    <span v-if="pseudoPortType" class="pseudo-node__porttype">{{ pseudoPortType }}</span>
+    <span v-else class="pseudo-node__porttype pseudo-node__missing">(no type)</span>
+    <Handle
+      v-if="pseudoName"
+      :id="pseudoName"
+      type="source"
+      :position="HandlePosition.Right"
+      class="custom-node__handle pseudo-node__handle"
+    />
+  </div>
+
+  <div v-else class="pseudo-node pseudo-node--output" :data-node-type="data.node.type">
+    <Handle
+      v-if="pseudoName"
+      :id="pseudoName"
+      type="target"
+      :position="HandlePosition.Left"
+      class="custom-node__handle pseudo-node__handle"
+    />
+    <span v-if="pseudoName" class="pseudo-node__name">{{ pseudoName }}</span>
+    <span v-else class="pseudo-node__name pseudo-node__missing">(unnamed)</span>
+    <span class="pseudo-node__sep">:</span>
+    <span v-if="pseudoPortType" class="pseudo-node__porttype">{{ pseudoPortType }}</span>
+    <span v-else class="pseudo-node__porttype pseudo-node__missing">(no type)</span>
+    <span class="pseudo-node__glyph">▶</span>
+  </div>
 </template>
 
 <style scoped>
@@ -118,6 +244,10 @@ const formatDuration = (ns: number): string => {
 .custom-node--errored {
   border-color: var(--vg-error);
   background: var(--vg-error-bg);
+}
+.custom-node--subgraph {
+  border-style: dashed;
+  border-color: var(--vg-accent);
 }
 .custom-node__header {
   display: flex;
@@ -192,5 +322,36 @@ const formatDuration = (ns: number): string => {
 }
 .custom-node__duration {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.pseudo-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--vg-surface-2);
+  border: 1px solid var(--vg-border);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--vg-text);
+  box-shadow: var(--vg-shadow-sm);
+  position: relative;
+}
+.pseudo-node__glyph {
+  color: var(--vg-accent);
+  font-size: 10px;
+}
+.pseudo-node__name {
+  font-weight: 600;
+}
+.pseudo-node__sep {
+  color: var(--vg-text-muted);
+}
+.pseudo-node__porttype {
+  color: var(--vg-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.pseudo-node__missing {
+  color: var(--vg-text-muted);
+  font-style: italic;
 }
 </style>

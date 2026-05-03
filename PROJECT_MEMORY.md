@@ -12,10 +12,9 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 **Phase 4 — Run-Result Import & Observability complete** (tag `phase-4-complete` on `phase-4-runresult`; 31 Vitest files / 202 tests + 6 Playwright e2e cases all green). All four committed phases complete.
 
-**Backlog progress (2026-05-02, all merged to `master` and pushed to `origin`):** ✅ Headless CLI · ✅ Plugin / external node-type registration · ✅ Code-splitting + Element Plus eager-load removed (initial gzip 417 KB → ~17 KB) · ✅ Ctrl+S / Ctrl+O / F shortcuts · ✅ Comments / annotations · ✅ Dark theme + a11y audit (n8n-style coral, primitive+semantic two-layer tokens in `src/styles/theme.css`, `[data-theme="dark"], :root` future-proofing for additional themes, `docs/theming.md` semantic-token contract, axe e2e gate via `@axe-core/playwright`).
+**Backlog progress (2026-05-02, all merged to `master` and pushed to `origin`):** ✅ Headless CLI · ✅ Plugin / external node-type registration · ✅ Code-splitting + Element Plus eager-load removed (initial gzip 417 KB → ~17 KB) · ✅ Ctrl+S / Ctrl+O / F shortcuts · ✅ Comments / annotations · ✅ Dark theme + a11y audit (n8n-style coral, primitive+semantic two-layer tokens in `src/styles/theme.css`, `[data-theme="dark"], :root` future-proofing for additional themes, `docs/theming.md` semantic-token contract, axe e2e gate via `@axe-core/playwright`) · ✅ Sub-graphs / grouping (recursive encapsulation, drill-in UX, flatten-at-compile, ADR-0007).
 
-**Resumption point — final remaining backlog item:**
-1. **Sub-graphs / grouping** — biggest remaining architectural change: touches schema, validator, compiler, canvas.
+**Resumption point:** All backlog items shipped. Next session has no queued work.
 
 Repo HEAD is `master` at `01f9537` with all four phase tags + 6 backlog commits pushed. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
 

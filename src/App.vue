@@ -4,6 +4,7 @@ import TopBar from "./editor/components/TopBar.vue";
 import Palette from "./editor/components/Palette.vue";
 import PropertyPanel from "./editor/components/PropertyPanel.vue";
 import ValidationPanel from "./editor/components/ValidationPanel.vue";
+import Breadcrumbs from "./editor/components/Breadcrumbs.vue";
 import { useLiveValidation } from "./editor/composables/useLiveValidation";
 import { useShortcuts } from "./editor/composables/useShortcuts";
 
@@ -30,6 +31,7 @@ useShortcuts();
         <Palette />
       </aside>
       <section class="editor-shell__centre">
+        <Breadcrumbs />
         <div class="editor-shell__canvas">
           <CanvasView />
         </div>
@@ -70,7 +72,7 @@ useShortcuts();
 }
 .editor-shell__centre {
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: auto 1fr auto;
   min-height: 0;
 }
 .editor-shell__canvas {

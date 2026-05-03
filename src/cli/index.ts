@@ -103,7 +103,7 @@ const cmdCompile = (opts: CompileOpts, streams: CliStreams): number => {
   }
   let compiled;
   try {
-    compiled = compile(loaded.data);
+    compiled = compile(loaded.data).graph;
   } catch (err) {
     streams.stderr.write(`error: compile failed: ${String(err)}\n`);
     return 1;

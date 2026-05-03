@@ -16,6 +16,7 @@ import { openFilePicker } from "../openFile";
 //   Ctrl/Cmd + S        save current document as JSON download
 //   Ctrl/Cmd + O        open file picker, load JSON via auto-detect dispatch
 //   Delete / Backspace  remove selection
+//   Backspace           exit one sub-graph level when no selection and not at root
 //   F                   fit-view (delegates to VueFlow once the canvas mounts)
 // Shortcuts are skipped when the focused element is editable so typing in the
 // property panel inputs and palette search is not stolen by these handlers.
@@ -84,7 +85,15 @@ export const useShortcuts = () => {
       return;
     }
     if (event.key === "Delete" || event.key === "Backspace") {
-      if (editorStore.selectedNodeIds.size === 0 && editorStore.selectedEdgeIds.size === 0) return;
+      const noSelection =
+        editorStore.selectedNodeIds.size === 0 && editorStore.selectedEdgeIds.size === 0;
+      if (noSelection) {
+        if (event.key === "Backspace" && !editorStore.isAtRoot) {
+          event.preventDefault();
+          ops.exitToParent();
+        }
+        return;
+      }
       event.preventDefault();
       ops.removeSelected();
       return;

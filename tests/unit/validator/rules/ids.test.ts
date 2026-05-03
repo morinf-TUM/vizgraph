@@ -28,12 +28,12 @@ describe("checkDuplicateNodeIds", () => {
       { id: 2, type: "Print", position: { x: 0, y: 0 } },
       { id: 3, type: "Print", position: { x: 0, y: 0 } },
     ]);
-    expect(checkDuplicateNodeIds(doc)).toEqual([]);
+    expect(checkDuplicateNodeIds(doc.graph)).toEqual([]);
   });
 
   it("returns no diagnostics for an empty graph", () => {
     const doc = docWithNodes([]);
-    expect(checkDuplicateNodeIds(doc)).toEqual([]);
+    expect(checkDuplicateNodeIds(doc.graph)).toEqual([]);
   });
 
   it("emits one diagnostic per duplicated id value (not per occurrence)", () => {
@@ -42,7 +42,7 @@ describe("checkDuplicateNodeIds", () => {
       { id: 1, type: "Print", position: { x: 0, y: 0 } },
       { id: 1, type: "Print", position: { x: 0, y: 0 } },
     ]);
-    const diags = checkDuplicateNodeIds(doc);
+    const diags = checkDuplicateNodeIds(doc.graph);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.severity).toBe("error");
     expect(diags[0]?.code).toBe(CODES.DUPLICATE_NODE_ID);
@@ -57,7 +57,7 @@ describe("checkDuplicateNodeIds", () => {
       { id: 2, type: "Print", position: { x: 0, y: 0 } },
       { id: 7, type: "Print", position: { x: 0, y: 0 } },
     ]);
-    const diags = checkDuplicateNodeIds(doc);
+    const diags = checkDuplicateNodeIds(doc.graph);
     expect(diags.map((d) => d.node_id)).toEqual([5, 2]);
     for (const d of diags) {
       expect(d.severity).toBe("error");
@@ -70,7 +70,7 @@ describe("checkDuplicateNodeIds", () => {
       { id: 42, type: "Print", position: { x: 0, y: 0 } },
       { id: 42, type: "Print", position: { x: 0, y: 0 } },
     ]);
-    const [diag] = checkDuplicateNodeIds(doc);
+    const [diag] = checkDuplicateNodeIds(doc.graph);
     expect(diag?.message).toMatch(/42/);
   });
 });
@@ -81,12 +81,12 @@ describe("checkDuplicateEdgeIds", () => {
       { id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } },
       { id: "e2", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } },
     ]);
-    expect(checkDuplicateEdgeIds(doc)).toEqual([]);
+    expect(checkDuplicateEdgeIds(doc.graph)).toEqual([]);
   });
 
   it("returns no diagnostics for an empty graph", () => {
     const doc = docWithEdges([]);
-    expect(checkDuplicateEdgeIds(doc)).toEqual([]);
+    expect(checkDuplicateEdgeIds(doc.graph)).toEqual([]);
   });
 
   it("emits one diagnostic per duplicated edge id (not per occurrence)", () => {
@@ -95,7 +95,7 @@ describe("checkDuplicateEdgeIds", () => {
       { id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } },
       { id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } },
     ]);
-    const diags = checkDuplicateEdgeIds(doc);
+    const diags = checkDuplicateEdgeIds(doc.graph);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.severity).toBe("error");
     expect(diags[0]?.code).toBe(CODES.DUPLICATE_EDGE_ID);
@@ -111,7 +111,7 @@ describe("checkDuplicateEdgeIds", () => {
       { id: "eB", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } },
       { id: "eC", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } },
     ]);
-    const diags = checkDuplicateEdgeIds(doc);
+    const diags = checkDuplicateEdgeIds(doc.graph);
     expect(diags.map((d) => d.edge_id)).toEqual(["eA", "eB"]);
     for (const d of diags) {
       expect(d.severity).toBe("error");
@@ -124,7 +124,7 @@ describe("checkDuplicateEdgeIds", () => {
       { id: "edge-x", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } },
       { id: "edge-x", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } },
     ]);
-    const [diag] = checkDuplicateEdgeIds(doc);
+    const [diag] = checkDuplicateEdgeIds(doc.graph);
     expect(diag?.message).toMatch(/edge-x/);
   });
 });

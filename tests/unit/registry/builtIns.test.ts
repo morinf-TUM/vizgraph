@@ -3,9 +3,16 @@ import { BUILT_IN_NODE_TYPES } from "../../../src/registry/builtIns";
 import { NodeTypeDescriptionSchema } from "../../../src/registry/types";
 
 describe("built-in node types", () => {
-  it("contains Constant, Add, Print", () => {
+  it("contains Constant, Add, Print, Subgraph, SubgraphInput, SubgraphOutput", () => {
     const types = BUILT_IN_NODE_TYPES.map((d) => d.type).sort();
-    expect(types).toEqual(["Add", "Constant", "Print"]);
+    expect(types).toEqual([
+      "Add",
+      "Constant",
+      "Print",
+      "Subgraph",
+      "SubgraphInput",
+      "SubgraphOutput",
+    ]);
   });
 
   it("each entry passes the NodeTypeDescription schema", () => {

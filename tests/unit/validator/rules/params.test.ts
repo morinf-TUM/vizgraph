@@ -20,7 +20,7 @@ describe("checkUnknownNodeTypes", () => {
       { id: 1, type: "Constant", position: { x: 0, y: 0 }, parameters: { value: 0 } },
       { id: 2, type: "Print", position: { x: 0, y: 0 } },
     ]);
-    expect(checkUnknownNodeTypes(doc, reg)).toEqual([]);
+    expect(checkUnknownNodeTypes(doc.graph, [], reg)).toEqual([]);
   });
 
   it("emits UNKNOWN_NODE_TYPE per offending node", () => {
@@ -29,7 +29,7 @@ describe("checkUnknownNodeTypes", () => {
       { id: 2, type: "Print", position: { x: 0, y: 0 } },
       { id: 3, type: "Phantom", position: { x: 0, y: 0 } },
     ]);
-    const diags = checkUnknownNodeTypes(doc, reg);
+    const diags = checkUnknownNodeTypes(doc.graph, [], reg);
     expect(diags).toHaveLength(2);
     expect(diags[0]?.code).toBe(CODES.UNKNOWN_NODE_TYPE);
     expect(diags[0]?.severity).toBe("error");
@@ -45,14 +45,14 @@ describe("checkMissingRequiredParameters", () => {
     const doc = docWithNodes([
       { id: 1, type: "Constant", position: { x: 0, y: 0 }, parameters: { value: 42 } },
     ]);
-    expect(checkMissingRequiredParameters(doc, reg)).toEqual([]);
+    expect(checkMissingRequiredParameters(doc.graph, [], reg)).toEqual([]);
   });
 
   it("emits MISSING_REQUIRED_PARAMETER when a required param is absent", () => {
     const doc = docWithNodes([
       { id: 1, type: "Constant", position: { x: 0, y: 0 }, parameters: {} },
     ]);
-    const diags = checkMissingRequiredParameters(doc, reg);
+    const diags = checkMissingRequiredParameters(doc.graph, [], reg);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.MISSING_REQUIRED_PARAMETER);
     expect(diags[0]?.severity).toBe("error");
@@ -71,14 +71,14 @@ describe("checkMissingRequiredParameters", () => {
       parameters: { foo: { type: "string", required: false } },
     };
     const doc = docWithNodes([{ id: 1, type: "Opt", position: { x: 0, y: 0 }, parameters: {} }]);
-    expect(checkMissingRequiredParameters(doc, createRegistry([Opt]))).toEqual([]);
+    expect(checkMissingRequiredParameters(doc.graph, [], createRegistry([Opt]))).toEqual([]);
   });
 
   it("skips nodes whose type is unknown (handled by UNKNOWN_NODE_TYPE)", () => {
     const doc = docWithNodes([
       { id: 1, type: "Mystery", position: { x: 0, y: 0 }, parameters: {} },
     ]);
-    expect(checkMissingRequiredParameters(doc, reg)).toEqual([]);
+    expect(checkMissingRequiredParameters(doc.graph, [], reg)).toEqual([]);
   });
 
   it("emits one diagnostic per missing required parameter on a single node", () => {
@@ -94,7 +94,7 @@ describe("checkMissingRequiredParameters", () => {
       },
     };
     const doc = docWithNodes([{ id: 1, type: "Two", position: { x: 0, y: 0 }, parameters: {} }]);
-    const diags = checkMissingRequiredParameters(doc, createRegistry([Two]));
+    const diags = checkMissingRequiredParameters(doc.graph, [], createRegistry([Two]));
     expect(diags.map((d) => d.field)).toEqual(["parameters.a", "parameters.b"]);
   });
 });
@@ -104,14 +104,14 @@ describe("checkParameterTypeMismatch", () => {
     const doc = docWithNodes([
       { id: 1, type: "Constant", position: { x: 0, y: 0 }, parameters: { value: 7 } },
     ]);
-    expect(checkParameterTypeMismatch(doc, reg)).toEqual([]);
+    expect(checkParameterTypeMismatch(doc.graph, [], reg)).toEqual([]);
   });
 
   it("emits PARAMETER_TYPE_MISMATCH when an int parameter is given a string", () => {
     const doc = docWithNodes([
       { id: 1, type: "Constant", position: { x: 0, y: 0 }, parameters: { value: "seven" } },
     ]);
-    const diags = checkParameterTypeMismatch(doc, reg);
+    const diags = checkParameterTypeMismatch(doc.graph, [], reg);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.PARAMETER_TYPE_MISMATCH);
     expect(diags[0]?.severity).toBe("error");
@@ -124,7 +124,7 @@ describe("checkParameterTypeMismatch", () => {
     const doc = docWithNodes([
       { id: 1, type: "Constant", position: { x: 0, y: 0 }, parameters: { value: 1.5 } },
     ]);
-    expect(checkParameterTypeMismatch(doc, reg)).toHaveLength(1);
+    expect(checkParameterTypeMismatch(doc.graph, [], reg)).toHaveLength(1);
   });
 
   it("accepts a string parameter set to a string", () => {
@@ -139,7 +139,7 @@ describe("checkParameterTypeMismatch", () => {
     const doc = docWithNodes([
       { id: 1, type: "S", position: { x: 0, y: 0 }, parameters: { name: "hello" } },
     ]);
-    expect(checkParameterTypeMismatch(doc, createRegistry([S]))).toEqual([]);
+    expect(checkParameterTypeMismatch(doc.graph, [], createRegistry([S]))).toEqual([]);
   });
 
   it("emits PARAMETER_TYPE_MISMATCH when a string parameter is given a number", () => {
@@ -154,7 +154,7 @@ describe("checkParameterTypeMismatch", () => {
     const doc = docWithNodes([
       { id: 1, type: "S", position: { x: 0, y: 0 }, parameters: { name: 5 } },
     ]);
-    expect(checkParameterTypeMismatch(doc, createRegistry([S]))).toHaveLength(1);
+    expect(checkParameterTypeMismatch(doc.graph, [], createRegistry([S]))).toHaveLength(1);
   });
 
   it("accepts unknown parameter type strings (forward-compat: skip with no diagnostic)", () => {
@@ -174,20 +174,20 @@ describe("checkParameterTypeMismatch", () => {
         parameters: { x: { whatever: true } },
       },
     ]);
-    expect(checkParameterTypeMismatch(doc, createRegistry([Future]))).toEqual([]);
+    expect(checkParameterTypeMismatch(doc.graph, [], createRegistry([Future]))).toEqual([]);
   });
 
   it("skips nodes whose type is unknown", () => {
     const doc = docWithNodes([
       { id: 1, type: "Mystery", position: { x: 0, y: 0 }, parameters: { value: "x" } },
     ]);
-    expect(checkParameterTypeMismatch(doc, reg)).toEqual([]);
+    expect(checkParameterTypeMismatch(doc.graph, [], reg)).toEqual([]);
   });
 
   it("does not flag a parameter that is absent (handled by MISSING_REQUIRED_PARAMETER)", () => {
     const doc = docWithNodes([
       { id: 1, type: "Constant", position: { x: 0, y: 0 }, parameters: {} },
     ]);
-    expect(checkParameterTypeMismatch(doc, reg)).toEqual([]);
+    expect(checkParameterTypeMismatch(doc.graph, [], reg)).toEqual([]);
   });
 });

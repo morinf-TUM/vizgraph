@@ -1,4 +1,5 @@
-import type { GraphDocument, GraphEdge, GraphNode } from "../../document/types";
+import type { Graph, GraphEdge, GraphNode } from "../../document/types";
+import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
 import type { NodeTypeRegistry } from "../../registry/registry";
 import type { NodeTypeDescription, PortDescription } from "../../registry/types";
 import { CODES } from "../codes";
@@ -18,16 +19,18 @@ interface EdgeContext {
 }
 
 const eachResolvableEdge = function* (
-  doc: GraphDocument,
+  graph: Graph,
   registry: NodeTypeRegistry,
 ): Generator<EdgeContext> {
   const nodesById = new Map<number, GraphNode>();
-  for (const n of doc.graph.nodes) nodesById.set(n.id, n);
+  for (const n of graph.nodes) nodesById.set(n.id, n);
 
-  for (const edge of doc.graph.edges) {
+  for (const edge of graph.edges) {
     const sourceNode = nodesById.get(edge.source.node);
     const targetNode = nodesById.get(edge.target.node);
     if (!sourceNode || !targetNode) continue;
+    // Subgraph nodes have dynamic ports validated by subgraphPorts.ts; skip them here.
+    if (sourceNode.type === SUBGRAPH_NODE_TYPE || targetNode.type === SUBGRAPH_NODE_TYPE) continue;
     const sourceType = registry.get(sourceNode.type);
     const targetType = registry.get(targetNode.type);
     if (!sourceType || !targetType) continue;
@@ -39,11 +42,12 @@ const findPort = (ports: readonly PortDescription[], name: string): PortDescript
   ports.find((p) => p.name === name);
 
 export const checkInvalidSourcePort = (
-  doc: GraphDocument,
+  graph: Graph,
+  path: number[] = [],
   registry: NodeTypeRegistry,
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
-  for (const { edge, sourceNode, sourceType } of eachResolvableEdge(doc, registry)) {
+  for (const { edge, sourceNode, sourceType } of eachResolvableEdge(graph, registry)) {
     if (!findPort(sourceType.outputs, edge.source.port)) {
       diagnostics.push(
         error({
@@ -52,6 +56,7 @@ export const checkInvalidSourcePort = (
           edge_id: edge.id,
           node_id: sourceNode.id,
           field: "source.port",
+          ...(path.length > 0 ? { path } : {}),
         }),
       );
     }
@@ -60,11 +65,12 @@ export const checkInvalidSourcePort = (
 };
 
 export const checkInvalidTargetPort = (
-  doc: GraphDocument,
+  graph: Graph,
+  path: number[] = [],
   registry: NodeTypeRegistry,
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
-  for (const { edge, targetNode, targetType } of eachResolvableEdge(doc, registry)) {
+  for (const { edge, targetNode, targetType } of eachResolvableEdge(graph, registry)) {
     if (!findPort(targetType.inputs, edge.target.port)) {
       diagnostics.push(
         error({
@@ -73,6 +79,7 @@ export const checkInvalidTargetPort = (
           edge_id: edge.id,
           node_id: targetNode.id,
           field: "target.port",
+          ...(path.length > 0 ? { path } : {}),
         }),
       );
     }
@@ -81,11 +88,12 @@ export const checkInvalidTargetPort = (
 };
 
 export const checkPortTypeMismatch = (
-  doc: GraphDocument,
+  graph: Graph,
+  path: number[] = [],
   registry: NodeTypeRegistry,
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
-  for (const { edge, sourceType, targetType } of eachResolvableEdge(doc, registry)) {
+  for (const { edge, sourceType, targetType } of eachResolvableEdge(graph, registry)) {
     const sourcePort = findPort(sourceType.outputs, edge.source.port);
     const targetPort = findPort(targetType.inputs, edge.target.port);
     if (!sourcePort || !targetPort) continue;
@@ -96,6 +104,7 @@ export const checkPortTypeMismatch = (
           code: CODES.PORT_TYPE_MISMATCH,
           message: `Edge ${edge.id} connects ${sourceType.type}.${sourcePort.name} (${sourcePort.type}) to ${targetType.type}.${targetPort.name} (${targetPort.type}).`,
           edge_id: edge.id,
+          ...(path.length > 0 ? { path } : {}),
         }),
       );
     }

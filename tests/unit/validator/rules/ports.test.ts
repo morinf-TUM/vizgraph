@@ -27,7 +27,7 @@ describe("checkInvalidSourcePort", () => {
       [node(1, "Constant"), node(2, "Print")],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } }],
     );
-    expect(checkInvalidSourcePort(doc, reg)).toEqual([]);
+    expect(checkInvalidSourcePort(doc.graph, [], reg)).toEqual([]);
   });
 
   it("emits INVALID_SOURCE_PORT when the source port name is not in the type's outputs", () => {
@@ -35,7 +35,7 @@ describe("checkInvalidSourcePort", () => {
       [node(1, "Constant"), node(2, "Print")],
       [{ id: "e1", source: { node: 1, port: "wrong" }, target: { node: 2, port: "in" } }],
     );
-    const diags = checkInvalidSourcePort(doc, reg);
+    const diags = checkInvalidSourcePort(doc.graph, [], reg);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.INVALID_SOURCE_PORT);
     expect(diags[0]?.severity).toBe("error");
@@ -50,7 +50,7 @@ describe("checkInvalidSourcePort", () => {
       [node(2, "Print")],
       [{ id: "e1", source: { node: 99, port: "out" }, target: { node: 2, port: "in" } }],
     );
-    expect(checkInvalidSourcePort(doc, reg)).toEqual([]);
+    expect(checkInvalidSourcePort(doc.graph, [], reg)).toEqual([]);
   });
 
   it("skips edges whose source node type is unknown (handled by unknown-type rule)", () => {
@@ -58,7 +58,7 @@ describe("checkInvalidSourcePort", () => {
       [node(1, "Mystery"), node(2, "Print")],
       [{ id: "e1", source: { node: 1, port: "anything" }, target: { node: 2, port: "in" } }],
     );
-    expect(checkInvalidSourcePort(doc, reg)).toEqual([]);
+    expect(checkInvalidSourcePort(doc.graph, [], reg)).toEqual([]);
   });
 
   it("emits one diagnostic per offending edge", () => {
@@ -69,7 +69,7 @@ describe("checkInvalidSourcePort", () => {
         { id: "e2", source: { node: 1, port: "bad2" }, target: { node: 2, port: "in" } },
       ],
     );
-    const diags = checkInvalidSourcePort(doc, reg);
+    const diags = checkInvalidSourcePort(doc.graph, [], reg);
     expect(diags.map((d) => d.edge_id)).toEqual(["e1", "e2"]);
   });
 });
@@ -80,7 +80,7 @@ describe("checkInvalidTargetPort", () => {
       [node(1, "Constant"), node(2, "Print")],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } }],
     );
-    expect(checkInvalidTargetPort(doc, reg)).toEqual([]);
+    expect(checkInvalidTargetPort(doc.graph, [], reg)).toEqual([]);
   });
 
   it("emits INVALID_TARGET_PORT when the target port name is not in the type's inputs", () => {
@@ -88,7 +88,7 @@ describe("checkInvalidTargetPort", () => {
       [node(1, "Constant"), node(2, "Add")],
       [{ id: "e2", source: { node: 1, port: "out" }, target: { node: 2, port: "c" } }],
     );
-    const diags = checkInvalidTargetPort(doc, reg);
+    const diags = checkInvalidTargetPort(doc.graph, [], reg);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.INVALID_TARGET_PORT);
     expect(diags[0]?.edge_id).toBe("e2");
@@ -102,7 +102,7 @@ describe("checkInvalidTargetPort", () => {
       [node(1, "Constant")],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 99, port: "in" } }],
     );
-    expect(checkInvalidTargetPort(doc, reg)).toEqual([]);
+    expect(checkInvalidTargetPort(doc.graph, [], reg)).toEqual([]);
   });
 
   it("skips edges whose target node type is unknown", () => {
@@ -110,7 +110,7 @@ describe("checkInvalidTargetPort", () => {
       [node(1, "Constant"), node(2, "Mystery")],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "anything" } }],
     );
-    expect(checkInvalidTargetPort(doc, reg)).toEqual([]);
+    expect(checkInvalidTargetPort(doc.graph, [], reg)).toEqual([]);
   });
 });
 
@@ -146,7 +146,7 @@ describe("checkPortTypeMismatch", () => {
       [node(1, "Constant"), node(2, "Add")],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "a" } }],
     );
-    expect(checkPortTypeMismatch(doc, reg)).toEqual([]);
+    expect(checkPortTypeMismatch(doc.graph, [], reg)).toEqual([]);
   });
 
   it("emits PORT_TYPE_MISMATCH when both ports declare types and they differ", () => {
@@ -154,7 +154,7 @@ describe("checkPortTypeMismatch", () => {
       [node(1, "A"), node(2, "B")],
       [{ id: "e1", source: { node: 1, port: "outInt" }, target: { node: 2, port: "inStr" } }],
     );
-    const diags = checkPortTypeMismatch(doc, customReg);
+    const diags = checkPortTypeMismatch(doc.graph, [], customReg);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.PORT_TYPE_MISMATCH);
     expect(diags[0]?.severity).toBe("error");
@@ -168,7 +168,7 @@ describe("checkPortTypeMismatch", () => {
       [node(1, "C"), node(2, "B")],
       [{ id: "e1", source: { node: 1, port: "outUntyped" }, target: { node: 2, port: "inStr" } }],
     );
-    expect(checkPortTypeMismatch(doc, customReg)).toEqual([]);
+    expect(checkPortTypeMismatch(doc.graph, [], customReg)).toEqual([]);
   });
 
   it("skips when target port has no declared type", () => {
@@ -176,7 +176,7 @@ describe("checkPortTypeMismatch", () => {
       [node(1, "A"), node(2, "C")],
       [{ id: "e1", source: { node: 1, port: "outInt" }, target: { node: 2, port: "inUntyped" } }],
     );
-    expect(checkPortTypeMismatch(doc, customReg)).toEqual([]);
+    expect(checkPortTypeMismatch(doc.graph, [], customReg)).toEqual([]);
   });
 
   it("skips when source node is missing", () => {
@@ -184,7 +184,7 @@ describe("checkPortTypeMismatch", () => {
       [node(2, "B")],
       [{ id: "e1", source: { node: 99, port: "outInt" }, target: { node: 2, port: "inStr" } }],
     );
-    expect(checkPortTypeMismatch(doc, customReg)).toEqual([]);
+    expect(checkPortTypeMismatch(doc.graph, [], customReg)).toEqual([]);
   });
 
   it("skips when source port name is invalid (handled by INVALID_SOURCE_PORT)", () => {
@@ -192,7 +192,7 @@ describe("checkPortTypeMismatch", () => {
       [node(1, "A"), node(2, "B")],
       [{ id: "e1", source: { node: 1, port: "ghost" }, target: { node: 2, port: "inStr" } }],
     );
-    expect(checkPortTypeMismatch(doc, customReg)).toEqual([]);
+    expect(checkPortTypeMismatch(doc.graph, [], customReg)).toEqual([]);
   });
 
   it("skips when source node type is unknown", () => {
@@ -200,6 +200,6 @@ describe("checkPortTypeMismatch", () => {
       [node(1, "Mystery"), node(2, "B")],
       [{ id: "e1", source: { node: 1, port: "outInt" }, target: { node: 2, port: "inStr" } }],
     );
-    expect(checkPortTypeMismatch(doc, customReg)).toEqual([]);
+    expect(checkPortTypeMismatch(doc.graph, [], customReg)).toEqual([]);
   });
 });

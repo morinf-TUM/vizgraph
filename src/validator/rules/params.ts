@@ -1,4 +1,4 @@
-import type { GraphDocument } from "../../document/types";
+import type { Graph } from "../../document/types";
 import type { NodeTypeRegistry } from "../../registry/registry";
 import { CODES } from "../codes";
 import { error, type Diagnostic } from "../diagnostics";
@@ -25,17 +25,19 @@ const matchesType = (type: string, value: unknown): boolean => {
 };
 
 export const checkUnknownNodeTypes = (
-  doc: GraphDocument,
+  graph: Graph,
+  path: number[] = [],
   registry: NodeTypeRegistry,
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
-  for (const node of doc.graph.nodes) {
+  for (const node of graph.nodes) {
     if (!registry.get(node.type)) {
       diagnostics.push(
         error({
           code: CODES.UNKNOWN_NODE_TYPE,
           message: `Node ${String(node.id)} has unknown type ${node.type}.`,
           node_id: node.id,
+          ...(path.length > 0 ? { path } : {}),
         }),
       );
     }
@@ -44,11 +46,12 @@ export const checkUnknownNodeTypes = (
 };
 
 export const checkMissingRequiredParameters = (
-  doc: GraphDocument,
+  graph: Graph,
+  path: number[] = [],
   registry: NodeTypeRegistry,
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
-  for (const node of doc.graph.nodes) {
+  for (const node of graph.nodes) {
     const desc = registry.get(node.type);
     if (!desc) continue;
     for (const [paramName, paramDesc] of Object.entries(desc.parameters)) {
@@ -59,6 +62,7 @@ export const checkMissingRequiredParameters = (
             message: `Node ${String(node.id)} of type ${desc.type} is missing required parameter ${paramName}.`,
             node_id: node.id,
             field: `parameters.${paramName}`,
+            ...(path.length > 0 ? { path } : {}),
           }),
         );
       }
@@ -68,11 +72,12 @@ export const checkMissingRequiredParameters = (
 };
 
 export const checkParameterTypeMismatch = (
-  doc: GraphDocument,
+  graph: Graph,
+  path: number[] = [],
   registry: NodeTypeRegistry,
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
-  for (const node of doc.graph.nodes) {
+  for (const node of graph.nodes) {
     const desc = registry.get(node.type);
     if (!desc) continue;
     for (const [paramName, paramDesc] of Object.entries(desc.parameters)) {
@@ -85,6 +90,7 @@ export const checkParameterTypeMismatch = (
             message: `Node ${String(node.id)} parameter ${paramName} expects ${paramDesc.type}.`,
             node_id: node.id,
             field: `parameters.${paramName}`,
+            ...(path.length > 0 ? { path } : {}),
           }),
         );
       }

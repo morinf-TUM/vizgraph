@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type { RunResult, RunResultNode, RunResultTick } from "../../document/runresult";
+import { useEditorStore } from "./editorStore";
 
 export type EditorMode = "edit" | "inspect";
 
@@ -17,13 +18,32 @@ export const useExecutionStore = defineStore("execution", () => {
     return ticks.value[tickIndex.value];
   });
 
-  // Map of node-id to RunResultNode for the current tick. The CustomNode
-  // overlay keys off this so reading is O(1) per node render.
-  const overlayByNodeId = computed<Map<number, RunResultNode>>(() => {
-    const map = new Map<number, RunResultNode>();
+  const overlayByPathKey = computed<Map<string, RunResultNode>>(() => {
+    const map = new Map<string, RunResultNode>();
     const tick = currentTick.value;
     if (!tick) return map;
-    for (const node of tick.nodes) map.set(node.id, node);
+    for (const n of tick.nodes) {
+      const path = n.path ?? [];
+      const key = path.length === 0 ? String(n.id) : `${path.join("/")}/${String(n.id)}`;
+      map.set(key, n);
+    }
+    return map;
+  });
+
+  // Scoped to editorStore.currentPath: CustomNode reads this for O(1) overlay
+  // lookup of the locally-visible node ids on the current sub-graph level.
+  const overlayByLocalNodeId = computed<Map<number, RunResultNode>>(() => {
+    const editor = useEditorStore();
+    const path = editor.currentPath;
+    const prefix = path.length === 0 ? "" : `${path.join("/")}/`;
+    const map = new Map<number, RunResultNode>();
+    for (const [key, node] of overlayByPathKey.value) {
+      if (path.length === 0) {
+        if (!key.includes("/")) map.set(node.id, node);
+      } else if (key.startsWith(prefix) && !key.slice(prefix.length).includes("/")) {
+        map.set(node.id, node);
+      }
+    }
     return map;
   });
 
@@ -61,7 +81,8 @@ export const useExecutionStore = defineStore("execution", () => {
     ticks,
     tickCount,
     currentTick,
-    overlayByNodeId,
+    overlayByPathKey,
+    overlayByLocalNodeId,
     setResult,
     clearResult,
     setTickIndex,

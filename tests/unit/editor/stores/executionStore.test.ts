@@ -37,7 +37,7 @@ describe("executionStore", () => {
     expect(s.result).toBeUndefined();
     expect(s.tickCount).toBe(0);
     expect(s.currentTick).toBeUndefined();
-    expect(s.overlayByNodeId.size).toBe(0);
+    expect(s.overlayByLocalNodeId.size).toBe(0);
   });
 
   it("setResult flips mode to inspect, resets tickIndex to 0, and exposes overlays", () => {
@@ -47,7 +47,7 @@ describe("executionStore", () => {
     expect(s.tickIndex).toBe(0);
     expect(s.tickCount).toBe(2);
     expect(s.currentTick?.tick).toBe(0);
-    expect(s.overlayByNodeId.get(3)?.outputs).toEqual({ sum: 5 });
+    expect(s.overlayByLocalNodeId.get(3)?.outputs).toEqual({ sum: 5 });
   });
 
   it("setTickIndex moves between ticks within bounds", () => {
@@ -55,7 +55,7 @@ describe("executionStore", () => {
     s.setResult(sample());
     s.setTickIndex(1);
     expect(s.currentTick?.tick).toBe(1);
-    expect(s.overlayByNodeId.get(3)?.outputs).toEqual({ sum: 7 });
+    expect(s.overlayByLocalNodeId.get(3)?.outputs).toEqual({ sum: 7 });
   });
 
   it("setTickIndex out of range is a no-op", () => {
@@ -74,7 +74,7 @@ describe("executionStore", () => {
     expect(s.mode).toBe("edit");
     expect(s.result).toBeUndefined();
     expect(s.tickIndex).toBe(0);
-    expect(s.overlayByNodeId.size).toBe(0);
+    expect(s.overlayByLocalNodeId.size).toBe(0);
   });
 
   it("toggleMode flips edit <-> inspect", () => {

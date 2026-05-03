@@ -8,6 +8,7 @@ import * as z from "zod";
 
 export const RunResultNodeSchema = z.object({
   id: z.number().int(),
+  path: z.array(z.number().int()).default([]),
   outputs: z.record(z.string(), z.unknown()).default({}),
   duration_ns: z.number().nonnegative(),
   error: z.string().nullable(),

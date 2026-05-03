@@ -3,18 +3,37 @@ import { computed, ref } from "vue";
 import {
   type Comment,
   type EdgeEndpoint,
+  type Graph,
   type GraphDocument,
   type GraphEdge,
   type GraphNode,
   type Position,
   type Viewport,
 } from "../../document/types";
-import { edgeIdFor, nextCommentId, nextNodeId } from "../../document/ids";
+import { edgeIdFor, nextCommentIdInGraph, nextNodeIdInGraph } from "../../document/ids";
+import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
+import { useEditorStore } from "./editorStore";
 
 const emptyDocument = (): GraphDocument => ({
   version: 1,
   graph: { nodes: [], edges: [], comments: [] },
 });
+
+const resolveGraph = (rootDoc: GraphDocument, path: readonly number[]): Graph => {
+  let g: Graph = rootDoc.graph;
+  for (const id of path) {
+    const node = g.nodes.find((n) => n.id === id);
+    if (!node || node.type !== SUBGRAPH_NODE_TYPE) {
+      throw new Error(`Path resolution failed at id ${String(id)}: not a Subgraph.`);
+    }
+    const child = (node.parameters as { children?: GraphDocument }).children;
+    if (!child) {
+      throw new Error(`Subgraph ${String(id)} has no children.`);
+    }
+    g = child.graph;
+  }
+  return g;
+};
 
 export interface AddNodeInput {
   type: string;
@@ -38,18 +57,24 @@ export interface AddCommentInput {
 
 export const useDocumentStore = defineStore("document", () => {
   const doc = ref<GraphDocument>(emptyDocument());
+  const editorStore = useEditorStore();
 
-  const nodes = computed(() => doc.value.graph.nodes);
-  const edges = computed(() => doc.value.graph.edges);
-  const viewport = computed(() => doc.value.graph.viewport);
-  const comments = computed(() => doc.value.graph.comments);
+  const currentLevelGraph = computed<Graph>(() => resolveGraph(doc.value, editorStore.currentPath));
 
-  const findNodeIndex = (id: number): number => doc.value.graph.nodes.findIndex((n) => n.id === id);
+  const nodes = computed(() => currentLevelGraph.value.nodes);
+  const edges = computed(() => currentLevelGraph.value.edges);
+  const viewport = computed(() => currentLevelGraph.value.viewport);
+  const comments = computed(() => currentLevelGraph.value.comments);
 
-  const findEdgeIndex = (id: string): number => doc.value.graph.edges.findIndex((e) => e.id === id);
+  const findNodeIndex = (id: number): number =>
+    currentLevelGraph.value.nodes.findIndex((n) => n.id === id);
+
+  const findEdgeIndex = (id: string): number =>
+    currentLevelGraph.value.edges.findIndex((e) => e.id === id);
 
   const addNode = (input: AddNodeInput): GraphNode => {
-    const id = nextNodeId(doc.value);
+    const graph = currentLevelGraph.value;
+    const id = nextNodeIdInGraph(graph);
     const node: GraphNode = {
       id,
       type: input.type,
@@ -58,27 +83,26 @@ export const useDocumentStore = defineStore("document", () => {
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.frequency_hz !== undefined ? { frequency_hz: input.frequency_hz } : {}),
     };
-    doc.value.graph.nodes.push(node);
+    graph.nodes.push(node);
     return node;
   };
 
   const removeNode = (id: number): void => {
-    const idx = findNodeIndex(id);
+    const graph = currentLevelGraph.value;
+    const idx = graph.nodes.findIndex((n) => n.id === id);
     if (idx < 0) return;
-    doc.value.graph.nodes.splice(idx, 1);
+    graph.nodes.splice(idx, 1);
     // Cascade: prune any edges incident to the removed node so the document
     // never holds dangling endpoints. The validator's MISSING_*_NODE rule
     // would flag them, but we prefer to keep the in-memory document
     // structurally clean.
-    doc.value.graph.edges = doc.value.graph.edges.filter(
-      (e) => e.source.node !== id && e.target.node !== id,
-    );
+    graph.edges = graph.edges.filter((e) => e.source.node !== id && e.target.node !== id);
   };
 
   const moveNode = (id: number, position: Position): void => {
     const idx = findNodeIndex(id);
     if (idx < 0) return;
-    const node = doc.value.graph.nodes[idx];
+    const node = currentLevelGraph.value.nodes[idx];
     if (!node) return;
     node.position = position;
   };
@@ -86,7 +110,7 @@ export const useDocumentStore = defineStore("document", () => {
   const renameNode = (id: number, name: string | undefined): void => {
     const idx = findNodeIndex(id);
     if (idx < 0) return;
-    const node = doc.value.graph.nodes[idx];
+    const node = currentLevelGraph.value.nodes[idx];
     if (!node) return;
     if (name === undefined) {
       delete node.name;
@@ -98,7 +122,7 @@ export const useDocumentStore = defineStore("document", () => {
   const updateParameter = (id: number, key: string, value: unknown): void => {
     const idx = findNodeIndex(id);
     if (idx < 0) return;
-    const node = doc.value.graph.nodes[idx];
+    const node = currentLevelGraph.value.nodes[idx];
     if (!node) return;
     node.parameters = { ...node.parameters, [key]: value };
   };
@@ -106,7 +130,7 @@ export const useDocumentStore = defineStore("document", () => {
   const setFrequency = (id: number, hz: number | null | undefined): void => {
     const idx = findNodeIndex(id);
     if (idx < 0) return;
-    const node = doc.value.graph.nodes[idx];
+    const node = currentLevelGraph.value.nodes[idx];
     if (!node) return;
     if (hz === undefined) {
       delete node.frequency_hz;
@@ -121,29 +145,31 @@ export const useDocumentStore = defineStore("document", () => {
       source: { ...input.source },
       target: { ...input.target },
     };
-    doc.value.graph.edges.push(edge);
+    currentLevelGraph.value.edges.push(edge);
     return edge;
   };
 
   const removeEdge = (id: string): void => {
     const idx = findEdgeIndex(id);
     if (idx < 0) return;
-    doc.value.graph.edges.splice(idx, 1);
+    currentLevelGraph.value.edges.splice(idx, 1);
   };
 
   const setViewport = (next: Viewport | undefined): void => {
+    const graph = currentLevelGraph.value;
     if (next === undefined) {
-      delete doc.value.graph.viewport;
+      delete graph.viewport;
     } else {
-      doc.value.graph.viewport = next;
+      graph.viewport = next;
     }
   };
 
   const findCommentIndex = (id: string): number =>
-    doc.value.graph.comments.findIndex((c) => c.id === id);
+    currentLevelGraph.value.comments.findIndex((c) => c.id === id);
 
   const addComment = (input: AddCommentInput): Comment => {
-    const id = nextCommentId(doc.value);
+    const graph = currentLevelGraph.value;
+    const id = nextCommentIdInGraph(graph);
     const comment: Comment = {
       id,
       text: input.text,
@@ -151,20 +177,20 @@ export const useDocumentStore = defineStore("document", () => {
       ...(input.size !== undefined ? { size: input.size } : {}),
       ...(input.color !== undefined ? { color: input.color } : {}),
     };
-    doc.value.graph.comments.push(comment);
+    graph.comments.push(comment);
     return comment;
   };
 
   const removeComment = (id: string): void => {
     const idx = findCommentIndex(id);
     if (idx < 0) return;
-    doc.value.graph.comments.splice(idx, 1);
+    currentLevelGraph.value.comments.splice(idx, 1);
   };
 
   const moveComment = (id: string, position: Position): void => {
     const idx = findCommentIndex(id);
     if (idx < 0) return;
-    const comment = doc.value.graph.comments[idx];
+    const comment = currentLevelGraph.value.comments[idx];
     if (!comment) return;
     comment.position = position;
   };
@@ -172,7 +198,7 @@ export const useDocumentStore = defineStore("document", () => {
   const updateComment = (id: string, patch: Partial<Omit<Comment, "id">>): void => {
     const idx = findCommentIndex(id);
     if (idx < 0) return;
-    const comment = doc.value.graph.comments[idx];
+    const comment = currentLevelGraph.value.comments[idx];
     if (!comment) return;
     if (patch.text !== undefined) comment.text = patch.text;
     if (patch.position !== undefined) comment.position = patch.position;
@@ -190,6 +216,7 @@ export const useDocumentStore = defineStore("document", () => {
 
   return {
     doc,
+    currentLevelGraph,
     nodes,
     edges,
     viewport,

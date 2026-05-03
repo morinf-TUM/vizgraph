@@ -15,6 +15,16 @@ export const CODES = {
   CYCLE: "cycle",
   ISOLATED_NODE: "isolated_node",
   UNCONNECTED_INPUT: "unconnected_input",
+  RESERVED_NODE_TYPE: "reserved_node_type",
+  SUBGRAPH_INVALID_PARAMETERS: "subgraph_invalid_parameters",
+  PSEUDO_NODE_INVALID_PARAMETERS: "pseudo_node_invalid_parameters",
+  PSEUDO_NODE_AT_ROOT: "pseudo_node_at_root",
+  PSEUDO_NODE_DUPLICATE_NAME: "pseudo_node_duplicate_name",
+  SUBGRAPH_PORT_UNBOUND: "subgraph_port_unbound",
+  SUBGRAPH_PORT_TYPE_MISMATCH: "subgraph_port_type_mismatch",
+  SUBGRAPH_INPUT_UNCONNECTED: "subgraph_input_unconnected",
+  SUBGRAPH_OUTPUT_UNCONNECTED: "subgraph_output_unconnected",
+  EMPTY_SUBGRAPH: "empty_subgraph",
 } as const;
 
 export type DiagnosticCode = (typeof CODES)[keyof typeof CODES];

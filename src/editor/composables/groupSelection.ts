@@ -1,4 +1,4 @@
-import type { Graph, GraphNode, Position } from "../../document/types";
+import type { Graph, GraphEdge, GraphNode, Position } from "../../document/types";
 import {
   SUBGRAPH_INPUT_NODE_TYPE,
   SUBGRAPH_NODE_TYPE,
@@ -58,29 +58,32 @@ export const groupSelection = (
     };
     let nextChildId = innerNodes.reduce((m, n) => (n.id > m ? n.id : m), 0) + 1;
 
-    const inputNameByExternalKey = new Map<string, string>();
-    let nextInputN = 1;
+    const crossingsInByKey = new Map<string, GraphEdge[]>();
     for (const e of crossingsIn) {
       const key = `${String(e.source.node)}.${e.source.port}`;
-      if (!inputNameByExternalKey.has(key)) {
-        const name = `in${String(nextInputN++)}`;
-        inputNameByExternalKey.set(key, name);
-        const pseudoId = nextChildId++;
-        childGraph.nodes.push({
-          id: pseudoId,
-          type: SUBGRAPH_INPUT_NODE_TYPE,
-          position: { x: 0, y: nextInputN * 50 },
-          parameters: { name, portType: "int" },
+      const bucket = crossingsInByKey.get(key);
+      if (bucket) bucket.push(e);
+      else crossingsInByKey.set(key, [e]);
+    }
+
+    const inputNameByExternalKey = new Map<string, string>();
+    let nextInputN = 1;
+    for (const [key, bucket] of crossingsInByKey) {
+      const name = `in${String(nextInputN++)}`;
+      inputNameByExternalKey.set(key, name);
+      const pseudoId = nextChildId++;
+      childGraph.nodes.push({
+        id: pseudoId,
+        type: SUBGRAPH_INPUT_NODE_TYPE,
+        position: { x: 0, y: nextInputN * 50 },
+        parameters: { name, portType: "int" },
+      });
+      for (const dup of bucket) {
+        childGraph.edges.push({
+          id: edgeIdFor(pseudoId, "out", dup.target.node, dup.target.port),
+          source: { node: pseudoId, port: "out" },
+          target: { node: dup.target.node, port: dup.target.port },
         });
-        for (const dup of crossingsIn.filter(
-          (x) => `${String(x.source.node)}.${x.source.port}` === key,
-        )) {
-          childGraph.edges.push({
-            id: edgeIdFor(pseudoId, "out", dup.target.node, dup.target.port),
-            source: { node: pseudoId, port: "out" },
-            target: { node: dup.target.node, port: dup.target.port },
-          });
-        }
       }
     }
 
@@ -119,14 +122,11 @@ export const groupSelection = (
     });
     const subgraphId = subgraphNode.id;
 
-    const seenInKeys = new Set<string>();
-    for (const e of crossingsIn) {
-      const key = `${String(e.source.node)}.${e.source.port}`;
-      if (seenInKeys.has(key)) continue;
-      seenInKeys.add(key);
+    for (const [key, bucket] of crossingsInByKey) {
       const name = inputNameByExternalKey.get(key)!;
+      const first = bucket[0]!;
       docStore.addEdge({
-        source: { node: e.source.node, port: e.source.port },
+        source: { node: first.source.node, port: first.source.port },
         target: { node: subgraphId, port: name },
       });
     }

@@ -148,7 +148,13 @@ describe("compile", () => {
       },
     });
     const out = compile(doc);
-    expect(out.graph.nodes.map((n) => n.uid)).toEqual([5, 2]);
+    // Sequential renumbering: first real node in doc order gets uid=1, second gets uid=2.
+    // Node id=5 is first in the array, node id=2 is second — ordering preserved.
+    const uid5 = out.idMap.get("5")!;
+    const uid2 = out.idMap.get("2")!;
+    expect(out.graph.nodes.map((n) => n.uid)).toEqual([uid5, uid2]);
+    // uid5 < uid2 confirms document ordering is preserved in the output array.
+    expect(uid5).toBeLessThan(uid2);
   });
 
   it("includes frequency_hz when set as a positive number", () => {

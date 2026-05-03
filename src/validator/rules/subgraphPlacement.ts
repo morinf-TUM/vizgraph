@@ -13,6 +13,7 @@ export const checkSubgraphPlacement = (graph: Graph, path: number[] = []): Diagn
           code: CODES.PSEUDO_NODE_AT_ROOT,
           message: `${node.type} node ${String(node.id)} cannot live at the root level; place it inside a Subgraph.`,
           node_id: node.id,
+          ...(path.length > 0 ? { path } : {}),
         }),
       );
     }

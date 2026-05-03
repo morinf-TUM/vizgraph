@@ -125,7 +125,10 @@ export const useCanvasOperations = () => {
         (isPseudoInput && e.target.node === subgraphNodeId && e.target.port === oldName) ||
         (isPseudoOutput && e.source.node === subgraphNodeId && e.source.port === oldName),
     );
-    if (affectedEdges.length === 0) return;
+    if (affectedEdges.length === 0) {
+      updateParameter(id, "name", newName);
+      return;
+    }
 
     history.transact("Rename pseudo-port", () => {
       // 1. Update the inner node's parameters.name.

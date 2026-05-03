@@ -48,7 +48,7 @@ describe("compile", () => {
       },
     });
 
-    expect(compile(doc)).toEqual({
+    expect(compile(doc).graph).toEqual({
       nodes: [
         { uid: 1, name: "Two", type: "Constant", value: 2 },
         { uid: 2, name: "Three", type: "Constant", value: 3 },
@@ -72,7 +72,7 @@ describe("compile", () => {
       },
     });
     const out = compile(doc);
-    expect(out.nodes[0]).not.toHaveProperty("name");
+    expect(out.graph.nodes[0]).not.toHaveProperty("name");
   });
 
   it("only includes value for Constant nodes", () => {
@@ -93,9 +93,9 @@ describe("compile", () => {
       },
     });
     const out = compile(doc);
-    expect(out.nodes[0]).toEqual({ uid: 1, type: "Constant", value: 7 });
-    expect(out.nodes[1]).toEqual({ uid: 2, type: "Add" });
-    expect(out.nodes[2]).toEqual({ uid: 3, type: "Print" });
+    expect(out.graph.nodes[0]).toEqual({ uid: 1, type: "Constant", value: 7 });
+    expect(out.graph.nodes[1]).toEqual({ uid: 2, type: "Add" });
+    expect(out.graph.nodes[2]).toEqual({ uid: 3, type: "Print" });
   });
 
   it("strips position, viewport, and edge.id from runtime output", () => {
@@ -122,7 +122,7 @@ describe("compile", () => {
       },
     });
     const out = compile(doc);
-    expect(JSON.stringify(out)).not.toMatch(/position|viewport|anything-goes-here/);
+    expect(JSON.stringify(out.graph)).not.toMatch(/position|viewport|anything-goes-here/);
   });
 
   it("preserves node and edge ordering from the document", () => {
@@ -148,7 +148,7 @@ describe("compile", () => {
       },
     });
     const out = compile(doc);
-    expect(out.nodes.map((n) => n.uid)).toEqual([5, 2]);
+    expect(out.graph.nodes.map((n) => n.uid)).toEqual([5, 2]);
   });
 
   it("includes frequency_hz when set as a positive number", () => {
@@ -159,7 +159,7 @@ describe("compile", () => {
         edges: [],
       },
     });
-    expect(compile(doc).nodes[0]).toEqual({ uid: 1, type: "Print", frequency_hz: 60 });
+    expect(compile(doc).graph.nodes[0]).toEqual({ uid: 1, type: "Print", frequency_hz: 60 });
   });
 
   it("omits frequency_hz when null or undefined", () => {
@@ -174,8 +174,8 @@ describe("compile", () => {
       },
     });
     const out = compile(doc);
-    expect(out.nodes[0]).not.toHaveProperty("frequency_hz");
-    expect(out.nodes[1]).not.toHaveProperty("frequency_hz");
+    expect(out.graph.nodes[0]).not.toHaveProperty("frequency_hz");
+    expect(out.graph.nodes[1]).not.toHaveProperty("frequency_hz");
   });
 
   it("throws when a Constant node is missing parameters.value", () => {
@@ -206,8 +206,8 @@ describe("compile", () => {
       },
     });
     const out = compile(doc);
-    expect(JSON.stringify(out)).not.toMatch(/TODO|c1|comment/i);
-    expect(out.nodes).toHaveLength(1);
+    expect(JSON.stringify(out.graph)).not.toMatch(/TODO|c1|comment/i);
+    expect(out.graph.nodes).toHaveLength(1);
   });
 
   it("throws when a Constant value is not an integer", () => {

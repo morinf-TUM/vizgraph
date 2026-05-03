@@ -31,11 +31,20 @@ export interface CompiledGraph {
   edges: CompiledEdge[];
 }
 
-export const compile = (doc: GraphDocument): CompiledGraph => {
-  const nodes = doc.graph.nodes.map((node): CompiledNode => {
+export interface CompiledOutput {
+  graph: CompiledGraph;
+  // Editor-only — path key (slash-joined integer ids) → uid. Used by the
+  // executionStore's run-result overlay to project per-uid runtime values
+  // back to (path, local-id) display positions.
+  idMap: Map<string, number>;
+}
+
+export const compile = (doc: GraphDocument): CompiledOutput => {
+  const idMap = new Map<string, number>();
+  const nodes: CompiledNode[] = doc.graph.nodes.map((node): CompiledNode => {
+    idMap.set(String(node.id), node.id);
     const out: CompiledNode = { uid: node.id, type: node.type };
     if (node.name !== undefined) out.name = node.name;
-
     if (node.type === "Constant") {
       const v = node.parameters.value;
       if (v === undefined) {
@@ -55,15 +64,13 @@ export const compile = (doc: GraphDocument): CompiledGraph => {
       }
       out.value = v;
     }
-
     if (node.frequency_hz !== undefined && node.frequency_hz !== null) {
       out.frequency_hz = node.frequency_hz;
     }
-
     return out;
   });
 
-  const edges = doc.graph.edges.map(
+  const edges: CompiledEdge[] = doc.graph.edges.map(
     (edge): CompiledEdge => ({
       src: edge.source.node,
       dst: edge.target.node,
@@ -72,5 +79,5 @@ export const compile = (doc: GraphDocument): CompiledGraph => {
     }),
   );
 
-  return { nodes, edges };
+  return { graph: { nodes, edges }, idMap };
 };

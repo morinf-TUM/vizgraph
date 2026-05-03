@@ -70,14 +70,14 @@ describe("fixtures: compiler", () => {
     const loaded = loadVersioned(versionedSimpleAdd);
     expect(loaded.success).toBe(true);
     if (!loaded.success) return;
-    expect(compile(loaded.data)).toEqual(legacySimpleAdd);
+    expect(compile(loaded.data).graph).toEqual(legacySimpleAdd);
   });
 
   it("compiles parallel-add to a graph with 8 nodes and 7 edges", () => {
     const loaded = loadLegacy(legacyParallelAdd);
     expect(loaded.success).toBe(true);
     if (!loaded.success) return;
-    const compiled = compile(loaded.data);
+    const compiled = compile(loaded.data).graph;
     expect(compiled.nodes).toHaveLength(8);
     expect(compiled.edges).toHaveLength(7);
     const printNode = compiled.nodes.find((n) => n.type === "Print");

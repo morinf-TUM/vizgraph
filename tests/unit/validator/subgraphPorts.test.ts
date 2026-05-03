@@ -122,6 +122,49 @@ describe("checkSubgraphPorts", () => {
     expect(out.some((d) => d.code === "subgraph_port_type_mismatch")).toBe(true);
   });
 
+  it("emits subgraph_port_type_mismatch when types disagree leaving a sub-graph", () => {
+    const doc: GraphDocument = {
+      version: 1,
+      graph: {
+        nodes: [
+          {
+            id: 11,
+            type: "Subgraph",
+            position: { x: 0, y: 0 },
+            parameters: {
+              children: {
+                version: 1,
+                graph: {
+                  nodes: [
+                    {
+                      id: 1,
+                      type: "SubgraphOutput",
+                      position: { x: 0, y: 0 },
+                      parameters: { name: "y", portType: "string" },
+                    },
+                  ],
+                  edges: [],
+                  comments: [],
+                },
+              },
+            },
+          },
+          { id: 12, type: "Add", position: { x: 100, y: 0 }, parameters: {} },
+        ],
+        edges: [
+          {
+            id: "e11_y__12_a",
+            source: { node: 11, port: "y" },
+            target: { node: 12, port: "a" },
+          },
+        ],
+        comments: [],
+      },
+    };
+    const out = checkSubgraphPorts(doc, reg);
+    expect(out.some((d) => d.code === "subgraph_port_type_mismatch")).toBe(true);
+  });
+
   it("emits pseudo_node_duplicate_name when a SubgraphInput and SubgraphOutput share parameters.name", () => {
     const doc = baseDoc({
       nodes: [

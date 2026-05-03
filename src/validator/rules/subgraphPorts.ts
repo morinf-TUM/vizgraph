@@ -31,14 +31,13 @@ export const checkSubgraphPorts = (
   registry: NodeTypeRegistry,
 ): Diagnostic[] => {
   const out: Diagnostic[] = [];
-  walk(doc.graph, [], doc, registry, out);
+  walk(doc.graph, [], registry, out);
   return out;
 };
 
 const walk = (
   graph: Graph,
   path: number[],
-  doc: GraphDocument,
   registry: NodeTypeRegistry,
   out: Diagnostic[],
 ): void => {
@@ -90,6 +89,26 @@ const walk = (
               ...(path.length > 0 ? { path } : {}),
             }),
           );
+        } else {
+          const innerPortType = (pseudo.parameters as { portType?: string }).portType;
+          if (
+            dstNode &&
+            dstNode.type !== SUBGRAPH_NODE_TYPE &&
+            dstNode.type !== SUBGRAPH_INPUT_NODE_TYPE &&
+            dstNode.type !== SUBGRAPH_OUTPUT_NODE_TYPE
+          ) {
+            const inType = portTypeOfRegular(registry, dstNode, edge.target.port, "in");
+            if (innerPortType !== undefined && inType !== undefined && innerPortType !== inType) {
+              out.push(
+                error({
+                  code: CODES.SUBGRAPH_PORT_TYPE_MISMATCH,
+                  message: `Edge ${edge.id} crosses sub-graph boundary with mismatched types: ${innerPortType} -> ${inType}.`,
+                  edge_id: edge.id,
+                  ...(path.length > 0 ? { path } : {}),
+                }),
+              );
+            }
+          }
         }
       }
     }
@@ -117,7 +136,8 @@ const walk = (
           if (
             srcNode &&
             srcNode.type !== SUBGRAPH_NODE_TYPE &&
-            srcNode.type !== SUBGRAPH_INPUT_NODE_TYPE
+            srcNode.type !== SUBGRAPH_INPUT_NODE_TYPE &&
+            srcNode.type !== SUBGRAPH_OUTPUT_NODE_TYPE
           ) {
             const outType = portTypeOfRegular(registry, srcNode, edge.source.port, "out");
             if (innerPortType !== undefined && outType !== undefined && innerPortType !== outType) {
@@ -140,7 +160,7 @@ const walk = (
   for (const node of graph.nodes) {
     if (node.type === SUBGRAPH_NODE_TYPE) {
       const cg = childGraph(node);
-      if (cg) walk(cg, [...path, node.id], doc, registry, out);
+      if (cg) walk(cg, [...path, node.id], registry, out);
     }
   }
 };

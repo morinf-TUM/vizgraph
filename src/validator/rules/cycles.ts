@@ -1,4 +1,4 @@
-import type { GraphDocument, GraphEdge } from "../../document/types";
+import type { Graph, GraphEdge } from "../../document/types";
 import { CODES } from "../codes";
 import { error, type Diagnostic } from "../diagnostics";
 
@@ -13,11 +13,11 @@ import { error, type Diagnostic } from "../diagnostics";
 
 type Color = "white" | "gray" | "black";
 
-export const checkCycles = (doc: GraphDocument): Diagnostic[] => {
-  const nodeIds = new Set(doc.graph.nodes.map((n) => n.id));
+export const checkCycles = (graph: Graph, path: number[] = []): Diagnostic[] => {
+  const nodeIds = new Set(graph.nodes.map((n) => n.id));
   const adjacency = new Map<number, GraphEdge[]>();
   for (const id of nodeIds) adjacency.set(id, []);
-  for (const edge of doc.graph.edges) {
+  for (const edge of graph.edges) {
     if (!nodeIds.has(edge.source.node) || !nodeIds.has(edge.target.node)) continue;
     if (edge.source.node === edge.target.node) continue;
     adjacency.get(edge.source.node)?.push(edge);
@@ -26,34 +26,35 @@ export const checkCycles = (doc: GraphDocument): Diagnostic[] => {
   const color = new Map<number, Color>();
   for (const id of nodeIds) color.set(id, "white");
 
-  const path: number[] = [];
+  const dfsPath: number[] = [];
   const diagnostics: Diagnostic[] = [];
 
   const dfs = (u: number): void => {
     color.set(u, "gray");
-    path.push(u);
+    dfsPath.push(u);
     for (const edge of adjacency.get(u) ?? []) {
       const v = edge.target.node;
       const c = color.get(v);
       if (c === "white") {
         dfs(v);
       } else if (c === "gray") {
-        const startIdx = path.indexOf(v);
-        const cycle = [...path.slice(startIdx), v];
+        const startIdx = dfsPath.indexOf(v);
+        const cycle = [...dfsPath.slice(startIdx), v];
         diagnostics.push(
           error({
             code: CODES.CYCLE,
             message: `Cycle detected: ${cycle.map(String).join(" -> ")}.`,
             edge_id: edge.id,
+            ...(path.length > 0 ? { path } : {}),
           }),
         );
       }
     }
-    path.pop();
+    dfsPath.pop();
     color.set(u, "black");
   };
 
-  for (const node of doc.graph.nodes) {
+  for (const node of graph.nodes) {
     if (color.get(node.id) === "white") dfs(node.id);
   }
 

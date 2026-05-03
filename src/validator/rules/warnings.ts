@@ -1,27 +1,28 @@
-import type { GraphDocument } from "../../document/types";
+import type { Graph } from "../../document/types";
 import type { NodeTypeRegistry } from "../../registry/registry";
 import { CODES } from "../codes";
 import { warning, type Diagnostic } from "../diagnostics";
 
-const incidentNodeIds = (doc: GraphDocument): Set<number> => {
+const incidentNodeIds = (graph: Graph): Set<number> => {
   const incident = new Set<number>();
-  for (const edge of doc.graph.edges) {
+  for (const edge of graph.edges) {
     incident.add(edge.source.node);
     incident.add(edge.target.node);
   }
   return incident;
 };
 
-export const checkIsolatedNodes = (doc: GraphDocument): Diagnostic[] => {
-  const incident = incidentNodeIds(doc);
+export const checkIsolatedNodes = (graph: Graph, path: number[] = []): Diagnostic[] => {
+  const incident = incidentNodeIds(graph);
   const diagnostics: Diagnostic[] = [];
-  for (const node of doc.graph.nodes) {
+  for (const node of graph.nodes) {
     if (!incident.has(node.id)) {
       diagnostics.push(
         warning({
           code: CODES.ISOLATED_NODE,
           message: `Node ${String(node.id)} is isolated (no edges in or out).`,
           node_id: node.id,
+          ...(path.length > 0 ? { path } : {}),
         }),
       );
     }
@@ -34,12 +35,13 @@ export const checkIsolatedNodes = (doc: GraphDocument): Diagnostic[] => {
 // case; this rule only fires on partly-connected nodes to avoid duplicate
 // noise. UNKNOWN_NODE_TYPE owns nodes whose type isn't in the registry.
 export const checkUnconnectedInputs = (
-  doc: GraphDocument,
+  graph: Graph,
+  path: number[] = [],
   registry: NodeTypeRegistry,
 ): Diagnostic[] => {
-  const incident = incidentNodeIds(doc);
+  const incident = incidentNodeIds(graph);
   const incomingByNode = new Map<number, Set<string>>();
-  for (const edge of doc.graph.edges) {
+  for (const edge of graph.edges) {
     let ports = incomingByNode.get(edge.target.node);
     if (!ports) {
       ports = new Set<string>();
@@ -49,7 +51,7 @@ export const checkUnconnectedInputs = (
   }
 
   const diagnostics: Diagnostic[] = [];
-  for (const node of doc.graph.nodes) {
+  for (const node of graph.nodes) {
     if (!incident.has(node.id)) continue;
     const desc = registry.get(node.type);
     if (!desc) continue;
@@ -62,6 +64,7 @@ export const checkUnconnectedInputs = (
             message: `Node ${String(node.id)} of type ${desc.type} has no edge into input port ${port.name}.`,
             node_id: node.id,
             field: `inputs.${port.name}`,
+            ...(path.length > 0 ? { path } : {}),
           }),
         );
       }

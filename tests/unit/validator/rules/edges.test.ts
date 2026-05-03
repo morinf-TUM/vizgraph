@@ -19,11 +19,11 @@ describe("checkMissingEdgeEndpoints", () => {
       [N(1, "Constant"), N(2)],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } }],
     );
-    expect(checkMissingEdgeEndpoints(doc)).toEqual([]);
+    expect(checkMissingEdgeEndpoints(doc.graph)).toEqual([]);
   });
 
   it("returns no diagnostics for an empty graph", () => {
-    expect(checkMissingEdgeEndpoints(docWith([], []))).toEqual([]);
+    expect(checkMissingEdgeEndpoints(docWith([], []).graph)).toEqual([]);
   });
 
   it("emits MISSING_SOURCE_NODE when source.node is not in nodes[]", () => {
@@ -31,7 +31,7 @@ describe("checkMissingEdgeEndpoints", () => {
       [N(2)],
       [{ id: "e1", source: { node: 99, port: "out" }, target: { node: 2, port: "in" } }],
     );
-    const diags = checkMissingEdgeEndpoints(doc);
+    const diags = checkMissingEdgeEndpoints(doc.graph);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.MISSING_SOURCE_NODE);
     expect(diags[0]?.severity).toBe("error");
@@ -46,7 +46,7 @@ describe("checkMissingEdgeEndpoints", () => {
       [N(1, "Constant")],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 77, port: "in" } }],
     );
-    const diags = checkMissingEdgeEndpoints(doc);
+    const diags = checkMissingEdgeEndpoints(doc.graph);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.MISSING_TARGET_NODE);
     expect(diags[0]?.edge_id).toBe("e1");
@@ -59,7 +59,7 @@ describe("checkMissingEdgeEndpoints", () => {
       [],
       [{ id: "e1", source: { node: 5, port: "out" }, target: { node: 6, port: "in" } }],
     );
-    const diags = checkMissingEdgeEndpoints(doc);
+    const diags = checkMissingEdgeEndpoints(doc.graph);
     expect(diags.map((d) => d.code)).toEqual([
       CODES.MISSING_SOURCE_NODE,
       CODES.MISSING_TARGET_NODE,
@@ -74,7 +74,7 @@ describe("checkMissingEdgeEndpoints", () => {
         { id: "e2", source: { node: 1, port: "out" }, target: { node: 99, port: "in" } },
       ],
     );
-    const diags = checkMissingEdgeEndpoints(doc);
+    const diags = checkMissingEdgeEndpoints(doc.graph);
     expect(diags.map((d) => d.edge_id)).toEqual(["e1", "e2"]);
     for (const d of diags) {
       expect(d.code).toBe(CODES.MISSING_TARGET_NODE);
@@ -89,7 +89,7 @@ describe("checkSelfLoops", () => {
       [N(1, "Constant"), N(2)],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 2, port: "in" } }],
     );
-    expect(checkSelfLoops(doc)).toEqual([]);
+    expect(checkSelfLoops(doc.graph)).toEqual([]);
   });
 
   it("emits SELF_LOOP per offending edge", () => {
@@ -97,7 +97,7 @@ describe("checkSelfLoops", () => {
       [N(1, "Constant")],
       [{ id: "e1", source: { node: 1, port: "out" }, target: { node: 1, port: "in" } }],
     );
-    const diags = checkSelfLoops(doc);
+    const diags = checkSelfLoops(doc.graph);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.SELF_LOOP);
     expect(diags[0]?.severity).toBe("error");
@@ -114,7 +114,7 @@ describe("checkSelfLoops", () => {
         { id: "eB", source: { node: 2, port: "out" }, target: { node: 2, port: "in" } },
       ],
     );
-    const diags = checkSelfLoops(doc);
+    const diags = checkSelfLoops(doc.graph);
     expect(diags.map((d) => d.edge_id)).toEqual(["eA", "eB"]);
   });
 });

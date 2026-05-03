@@ -23,11 +23,13 @@ const docWithFrequencies = (freqs: ReadonlyArray<number | null | undefined>): Gr
 
 describe("checkInvalidFrequency", () => {
   it("returns no diagnostics when all frequencies are positive, null, or omitted", () => {
-    expect(checkInvalidFrequency(docWithFrequencies([60, null, undefined, 0.001]))).toEqual([]);
+    expect(checkInvalidFrequency(docWithFrequencies([60, null, undefined, 0.001]).graph)).toEqual(
+      [],
+    );
   });
 
   it("emits INVALID_FREQUENCY for zero", () => {
-    const diags = checkInvalidFrequency(docWithFrequencies([0]));
+    const diags = checkInvalidFrequency(docWithFrequencies([0]).graph);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.INVALID_FREQUENCY);
     expect(diags[0]?.severity).toBe("error");
@@ -36,14 +38,16 @@ describe("checkInvalidFrequency", () => {
   });
 
   it("emits INVALID_FREQUENCY for negative numbers", () => {
-    const diags = checkInvalidFrequency(docWithFrequencies([-5]));
+    const diags = checkInvalidFrequency(docWithFrequencies([-5]).graph);
     expect(diags).toHaveLength(1);
     expect(diags[0]?.code).toBe(CODES.INVALID_FREQUENCY);
     expect(diags[0]?.node_id).toBe(1);
   });
 
   it("emits INVALID_FREQUENCY for NaN and infinity", () => {
-    const diags = checkInvalidFrequency(docWithFrequencies([Number.NaN, Number.POSITIVE_INFINITY]));
+    const diags = checkInvalidFrequency(
+      docWithFrequencies([Number.NaN, Number.POSITIVE_INFINITY]).graph,
+    );
     expect(diags).toHaveLength(2);
     for (const d of diags) {
       expect(d.code).toBe(CODES.INVALID_FREQUENCY);
@@ -51,7 +55,7 @@ describe("checkInvalidFrequency", () => {
   });
 
   it("emits one diagnostic per offending node, in document order", () => {
-    const diags = checkInvalidFrequency(docWithFrequencies([60, -1, null, 0]));
+    const diags = checkInvalidFrequency(docWithFrequencies([60, -1, null, 0]).graph);
     expect(diags.map((d) => d.node_id)).toEqual([2, 4]);
   });
 });

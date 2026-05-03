@@ -4,6 +4,7 @@ import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useCanvasOperations } from "../composables/useCanvasOperations";
 import { defaultRegistry } from "../../registry/registry";
+import { SUBGRAPH_INPUT_NODE_TYPE, SUBGRAPH_OUTPUT_NODE_TYPE } from "../../document/subgraph";
 
 const docStore = useDocumentStore();
 const editorStore = useEditorStore();
@@ -43,6 +44,39 @@ const onNameInput = (event: Event): void => {
   const target = event.target as HTMLInputElement;
   ops.renameNode(n.id, target.value === "" ? undefined : target.value);
 };
+
+const isPseudo = computed(() => {
+  const t = selectedNode.value?.type;
+  return t === SUBGRAPH_INPUT_NODE_TYPE || t === SUBGRAPH_OUTPUT_NODE_TYPE;
+});
+
+const pseudoName = computed<string>(() => {
+  const n = selectedNode.value;
+  if (!n || !isPseudo.value) return "";
+  const v = (n.parameters as { name?: unknown }).name;
+  return typeof v === "string" ? v : "";
+});
+
+const pseudoPortType = computed<string>(() => {
+  const n = selectedNode.value;
+  if (!n || !isPseudo.value) return "";
+  const v = (n.parameters as { portType?: unknown }).portType;
+  return typeof v === "string" ? v : "";
+});
+
+const onPseudoName = (event: Event): void => {
+  const n = selectedNode.value;
+  if (!n) return;
+  const target = event.target as HTMLInputElement;
+  ops.updateParameter(n.id, "name", target.value);
+};
+
+const onPseudoPortType = (event: Event): void => {
+  const n = selectedNode.value;
+  if (!n) return;
+  const target = event.target as HTMLInputElement;
+  ops.updateParameter(n.id, "portType", target.value);
+};
 </script>
 
 <template>
@@ -58,7 +92,8 @@ const onNameInput = (event: Event): void => {
         <label class="property-panel__label">type</label>
         <span class="property-panel__readonly">{{ selectedNode.type }}</span>
       </div>
-      <div class="property-panel__field">
+      <!-- name field for non-pseudo nodes -->
+      <div v-if="!isPseudo" class="property-panel__field">
         <label class="property-panel__label">name</label>
         <input
           class="property-panel__input"
@@ -67,6 +102,29 @@ const onNameInput = (event: Event): void => {
           @input="onNameInput"
         />
       </div>
+
+      <!-- pseudo-node fields -->
+      <template v-if="isPseudo">
+        <div class="property-panel__field">
+          <label class="property-panel__label">port name</label>
+          <input
+            class="property-panel__input"
+            data-testid="property-pseudo-name"
+            :value="pseudoName"
+            @input="onPseudoName"
+          />
+        </div>
+        <div class="property-panel__field">
+          <label class="property-panel__label">port type</label>
+          <input
+            class="property-panel__input"
+            data-testid="property-pseudo-port-type"
+            :value="pseudoPortType"
+            @input="onPseudoPortType"
+          />
+        </div>
+      </template>
+
       <div v-if="selectedNode.type === 'Constant'" class="property-panel__field">
         <label class="property-panel__label">value</label>
         <input

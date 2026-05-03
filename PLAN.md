@@ -102,4 +102,4 @@ Prerequisite: upgrade Node to 22 LTS on dev machine; `corepack enable && corepac
 - [x] Ctrl+S / Ctrl+O / F keyboard shortcuts. *(2026-05-02 — finishes the Phase-3 keyboard story.)*
 - [x] Comments / annotations on the canvas. *(2026-05-02 — free-floating notes; attached annotations could be a follow-up.)*
 - [ ] Theming (n8n-style dark theme, accessibility audit). *(Recommended next — lower architectural risk, broad polish.)*
-- [ ] Sub-graphs / grouping. *(Biggest remaining change: schema + validator + compiler + canvas.)*
+- [x] Sub-graphs / grouping. *(2026-05-02 — see CHANGELOG.)*

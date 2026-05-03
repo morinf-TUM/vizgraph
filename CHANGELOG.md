@@ -4,6 +4,13 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Added: Sub-graphs / grouping (2026-05-02)
+- Sub-graphs / grouping: recursive encapsulation with typed port surface,
+  drill-in canvas with breadcrumbs, current-level RunResult overlays.
+  Compiler flattens to the existing runtime-bound JSON shape; no C++
+  runtime changes. See `docs/specs/2026-05-02-subgraphs-design.md`
+  and ADR-0007.
+
 ### Backlog: dark theme + a11y audit (2026-05-02)
 - Single n8n-style dark palette in `src/styles/theme.css`, structured as a **primitive layer** (`--vg-color-*`, raw values, never consumed by components) and a **semantic layer** (`--vg-*`, what components read). Components consume only semantic tokens; reaching for a primitive is a smell.
 - Selector `[data-theme="dark"], :root` future-proofs the toggle: a sibling `[data-theme="light"] { … }` block adds a light theme with zero component changes. `<html data-theme="dark">` is set in `index.html`; no runtime toggle, no `useTheme` composable, no `prefers-color-scheme` (out-of-scope per design).

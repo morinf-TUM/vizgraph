@@ -59,9 +59,7 @@ export const useDocumentStore = defineStore("document", () => {
   const doc = ref<GraphDocument>(emptyDocument());
   const editorStore = useEditorStore();
 
-  const currentLevelGraph = computed<Graph>(() =>
-    resolveGraph(doc.value, editorStore.currentPath),
-  );
+  const currentLevelGraph = computed<Graph>(() => resolveGraph(doc.value, editorStore.currentPath));
 
   const nodes = computed(() => currentLevelGraph.value.nodes);
   const edges = computed(() => currentLevelGraph.value.edges);

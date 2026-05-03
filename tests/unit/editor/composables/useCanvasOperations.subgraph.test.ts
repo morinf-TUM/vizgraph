@@ -79,13 +79,9 @@ describe("groupSelection", () => {
     expect(doc.nodes).toHaveLength(3);
     const sg = doc.nodes.find((n) => n.type === "Subgraph");
     expect(sg).toBeDefined();
-    const reroutedIn = doc.edges.find(
-      (e) => e.source.node === 1 && e.target.node === sg!.id,
-    );
+    const reroutedIn = doc.edges.find((e) => e.source.node === 1 && e.target.node === sg!.id);
     expect(reroutedIn).toBeDefined();
-    const reroutedOut = doc.edges.find(
-      (e) => e.source.node === sg!.id && e.target.node === 3,
-    );
+    const reroutedOut = doc.edges.find((e) => e.source.node === sg!.id && e.target.node === 3);
     expect(reroutedOut).toBeDefined();
     const inner = (sg!.parameters as { children: { graph: { nodes: { type: string }[] } } })
       .children.graph.nodes;
@@ -116,9 +112,7 @@ describe("groupSelection", () => {
     expect(doc.nodes).toHaveLength(2);
     const sg = doc.nodes.find((n) => n.type === "Subgraph");
     expect(sg).toBeDefined();
-    const reroutedIns = doc.edges.filter(
-      (e) => e.source.node === 1 && e.target.node === sg!.id,
-    );
+    const reroutedIns = doc.edges.filter((e) => e.source.node === 1 && e.target.node === sg!.id);
     expect(reroutedIns).toHaveLength(1);
     expect(reroutedIns[0]!.target.port).toBe("in1");
     const innerGraph = (
@@ -126,7 +120,10 @@ describe("groupSelection", () => {
         children: {
           graph: {
             nodes: { id: number; type: string }[];
-            edges: { source: { node: number; port: string }; target: { node: number; port: string } }[];
+            edges: {
+              source: { node: number; port: string };
+              target: { node: number; port: string };
+            }[];
           };
         };
       }
@@ -136,10 +133,12 @@ describe("groupSelection", () => {
     expect(pseudoIns).toHaveLength(1);
     const pseudoId = pseudoIns[0]!.id;
     expect(innerGraph.edges).toHaveLength(2);
-    expect(innerGraph.edges.every((e) => e.source.node === pseudoId && e.source.port === "out")).toBe(
-      true,
-    );
-    const innerTargets = innerGraph.edges.map((e) => `${String(e.target.node)}.${e.target.port}`).sort();
+    expect(
+      innerGraph.edges.every((e) => e.source.node === pseudoId && e.source.port === "out"),
+    ).toBe(true);
+    const innerTargets = innerGraph.edges
+      .map((e) => `${String(e.target.node)}.${e.target.port}`)
+      .sort();
     expect(innerTargets).toEqual(["2.a", "3.a"]);
   });
 

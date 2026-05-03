@@ -55,7 +55,9 @@ const innerPseudoNodes = (kind: string) => {
     .filter((n) => n.type === kind)
     .slice()
     .sort((a, b) => a.position.y - b.position.y || a.position.x - b.position.x)
-    .map((n) => ({ name: (n.parameters as { name: string }).name }));
+    .map((n) => (n.parameters as { name?: string }).name)
+    .filter((name): name is string => typeof name === "string" && name.length > 0)
+    .map((name) => ({ name }));
 };
 
 const subgraphInputs = computed(() =>
@@ -65,9 +67,7 @@ const subgraphOutputs = computed(() =>
   branch.value === "subgraph" ? innerPseudoNodes(SUBGRAPH_OUTPUT_NODE_TYPE) : [],
 );
 
-const pseudoName = computed(
-  () => (node.value.parameters as { name?: string }).name ?? "",
-);
+const pseudoName = computed(() => (node.value.parameters as { name?: string }).name ?? "");
 const pseudoPortType = computed(
   () => (node.value.parameters as { portType?: string }).portType ?? "",
 );
@@ -155,11 +155,7 @@ const formatDuration = (ns: number): string => {
     </div>
     <div class="custom-node__ports">
       <div class="custom-node__inputs">
-        <div
-          v-for="port in subgraphInputs"
-          :key="`sub-in-${port.name}`"
-          class="custom-node__port"
-        >
+        <div v-for="port in subgraphInputs" :key="`sub-in-${port.name}`" class="custom-node__port">
           <Handle
             :id="port.name"
             type="target"
@@ -189,10 +185,13 @@ const formatDuration = (ns: number): string => {
 
   <div v-else-if="branch === 'subgraphInput'" class="pseudo-node pseudo-node--input">
     <span class="pseudo-node__glyph">▶</span>
-    <span class="pseudo-node__name">{{ pseudoName }}</span>
+    <span v-if="pseudoName" class="pseudo-node__name">{{ pseudoName }}</span>
+    <span v-else class="pseudo-node__name pseudo-node__missing">(unnamed)</span>
     <span class="pseudo-node__sep">:</span>
-    <span class="pseudo-node__porttype">{{ pseudoPortType }}</span>
+    <span v-if="pseudoPortType" class="pseudo-node__porttype">{{ pseudoPortType }}</span>
+    <span v-else class="pseudo-node__porttype pseudo-node__missing">(no type)</span>
     <Handle
+      v-if="pseudoName"
       :id="pseudoName"
       type="source"
       :position="HandlePosition.Right"
@@ -202,14 +201,17 @@ const formatDuration = (ns: number): string => {
 
   <div v-else class="pseudo-node pseudo-node--output">
     <Handle
+      v-if="pseudoName"
       :id="pseudoName"
       type="target"
       :position="HandlePosition.Left"
       class="custom-node__handle pseudo-node__handle"
     />
-    <span class="pseudo-node__name">{{ pseudoName }}</span>
+    <span v-if="pseudoName" class="pseudo-node__name">{{ pseudoName }}</span>
+    <span v-else class="pseudo-node__name pseudo-node__missing">(unnamed)</span>
     <span class="pseudo-node__sep">:</span>
-    <span class="pseudo-node__porttype">{{ pseudoPortType }}</span>
+    <span v-if="pseudoPortType" class="pseudo-node__porttype">{{ pseudoPortType }}</span>
+    <span v-else class="pseudo-node__porttype pseudo-node__missing">(no type)</span>
     <span class="pseudo-node__glyph">▶</span>
   </div>
 </template>
@@ -338,5 +340,9 @@ const formatDuration = (ns: number): string => {
 .pseudo-node__porttype {
   color: var(--vg-text-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.pseudo-node__missing {
+  color: var(--vg-text-muted);
+  font-style: italic;
 }
 </style>

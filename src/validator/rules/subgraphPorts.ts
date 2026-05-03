@@ -42,42 +42,27 @@ const walk = (
   registry: NodeTypeRegistry,
   out: Diagnostic[],
 ): void => {
-  // Inside this level, check duplicate pseudo-node names per direction.
-  const seenInput = new Map<string, number>();
-  const seenOutput = new Map<string, number>();
+  // Outer-face port ids project onto a shared namespace, so a
+  // SubgraphInput and a SubgraphOutput sharing parameters.name collide.
+  const seenNames = new Map<string, number>();
   for (const node of graph.nodes) {
-    if (node.type === SUBGRAPH_INPUT_NODE_TYPE) {
-      const name = (node.parameters as { name?: string }).name;
-      if (name === undefined) continue;
-      if (seenInput.has(name)) {
-        out.push(
-          error({
-            code: CODES.PSEUDO_NODE_DUPLICATE_NAME,
-            message: `SubgraphInput name "${name}" is used by more than one pseudo-node at this level.`,
-            node_id: node.id,
-            field: "parameters.name",
-            ...(path.length > 0 ? { path } : {}),
-          }),
-        );
-      } else {
-        seenInput.set(name, node.id);
-      }
-    } else if (node.type === SUBGRAPH_OUTPUT_NODE_TYPE) {
-      const name = (node.parameters as { name?: string }).name;
-      if (name === undefined) continue;
-      if (seenOutput.has(name)) {
-        out.push(
-          error({
-            code: CODES.PSEUDO_NODE_DUPLICATE_NAME,
-            message: `SubgraphOutput name "${name}" is used by more than one pseudo-node at this level.`,
-            node_id: node.id,
-            field: "parameters.name",
-            ...(path.length > 0 ? { path } : {}),
-          }),
-        );
-      } else {
-        seenOutput.set(name, node.id);
-      }
+    if (node.type !== SUBGRAPH_INPUT_NODE_TYPE && node.type !== SUBGRAPH_OUTPUT_NODE_TYPE) {
+      continue;
+    }
+    const name = (node.parameters as { name?: string }).name;
+    if (name === undefined) continue;
+    if (seenNames.has(name)) {
+      out.push(
+        error({
+          code: CODES.PSEUDO_NODE_DUPLICATE_NAME,
+          message: `Pseudo-node name "${name}" is used by more than one ${SUBGRAPH_INPUT_NODE_TYPE}/${SUBGRAPH_OUTPUT_NODE_TYPE} at this level.`,
+          node_id: node.id,
+          field: "parameters.name",
+          ...(path.length > 0 ? { path } : {}),
+        }),
+      );
+    } else {
+      seenNames.set(name, node.id);
     }
   }
 

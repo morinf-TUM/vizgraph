@@ -121,4 +121,27 @@ describe("checkSubgraphPorts", () => {
     const out = checkSubgraphPorts(doc, reg);
     expect(out.some((d) => d.code === "subgraph_port_type_mismatch")).toBe(true);
   });
+
+  it("emits pseudo_node_duplicate_name when a SubgraphInput and SubgraphOutput share parameters.name", () => {
+    const doc = baseDoc({
+      nodes: [
+        {
+          id: 1,
+          type: "SubgraphInput",
+          position: { x: 0, y: 0 },
+          parameters: { name: "z", portType: "int" },
+        },
+        {
+          id: 2,
+          type: "SubgraphOutput",
+          position: { x: 0, y: 50 },
+          parameters: { name: "z", portType: "int" },
+        },
+      ],
+      edges: [],
+      comments: [],
+    });
+    const out = checkSubgraphPorts(doc, reg);
+    expect(out.some((d) => d.code === "pseudo_node_duplicate_name")).toBe(true);
+  });
 });

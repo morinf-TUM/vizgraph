@@ -16,7 +16,7 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 **Resumption point:** All backlog items shipped. Next session has no queued work.
 
-Repo HEAD is `master` at `01f9537` with all four phase tags + 6 backlog commits pushed. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
+Repo HEAD is `master` at `09aefba` (merge of `feat/subgraphs`, tag `subgraphs-complete`) with all four phase tags + 7 backlog commits pushed. 47 Vitest files / 293 tests + 10 Playwright cases all green. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
 
 ## Tech stack (locked Phase 0)
 

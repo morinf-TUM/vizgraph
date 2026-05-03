@@ -91,6 +91,7 @@ Pure functions in `document`, `registry`, `serializer`, `validator`, `compiler` 
 - ADR-0004 — Command-pattern undo/redo.
 - ADR-0005 — Persistence: browser download + `<input type=file>` + localStorage autosave + File System Access API as Chromium progressive enhancement.
 - ADR-0006 — Phase-4 reinterpreted as RunResult import.
+- ADR-0007 — Sub-graphs flatten at compile time.
 
 ## Environment notes (Phase 0 snapshot)
 

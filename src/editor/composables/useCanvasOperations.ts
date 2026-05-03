@@ -4,7 +4,9 @@ import {
   SUBGRAPH_INPUT_NODE_TYPE,
   SUBGRAPH_NODE_TYPE,
   SUBGRAPH_OUTPUT_NODE_TYPE,
+  type SubgraphParameters,
 } from "../../document/subgraph";
+import { edgeIdFor } from "../../document/ids";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useHistoryStore } from "../stores/historyStore";
@@ -106,30 +108,49 @@ export const useCanvasOperations = () => {
     const oldName = (node.parameters as { name?: string }).name ?? "";
     if (oldName === newName) return;
     const subgraphNodeId = path[path.length - 1]!;
+
+    // Traverse to the parent graph BEFORE transact so we can bail out without
+    // leaving a no-op snapshot on the undo stack.
+    const parentPath = path.slice(0, -1);
+    let parentGraph = docStore.doc.graph;
+    for (const stepId of parentPath) {
+      const stepNode = parentGraph.nodes.find((n) => n.id === stepId);
+      const childDoc = stepNode ? (stepNode.parameters as SubgraphParameters).children : undefined;
+      if (!childDoc) return;
+      parentGraph = childDoc.graph;
+    }
+    // Bail out early if there are no outer edges to patch, avoiding an empty undo entry.
+    const affectedEdges = parentGraph.edges.filter(
+      (e) =>
+        (isPseudoInput && e.target.node === subgraphNodeId && e.target.port === oldName) ||
+        (isPseudoOutput && e.source.node === subgraphNodeId && e.source.port === oldName),
+    );
+    if (affectedEdges.length === 0) return;
+
     history.transact("Rename pseudo-port", () => {
       // 1. Update the inner node's parameters.name.
       docStore.updateParameter(id, "name", newName);
-      // 2. Patch outer edges: walk the parent-level graph (one step up in path)
-      //    and rewrite edge endpoints that reference the old port name on the
-      //    enclosing Subgraph node.
-      const parentPath = path.slice(0, -1);
-      let parentGraph = docStore.doc.graph;
-      for (const stepId of parentPath) {
-        const stepNode = parentGraph.nodes.find((n) => n.id === stepId);
-        const childDoc = stepNode
-          ? (stepNode.parameters as { children?: { graph: typeof parentGraph } }).children
-          : undefined;
-        if (!childDoc) return;
-        parentGraph = childDoc.graph;
-      }
-      for (const edge of parentGraph.edges) {
-        if (isPseudoInput && edge.target.node === subgraphNodeId && edge.target.port === oldName) {
+      // 2. Patch outer edges that reference the old port name on the enclosing
+      //    Subgraph node. We mutate in-place rather than removeEdge/addEdge
+      //    because those helpers are bound to currentLevelGraph (the inner graph);
+      //    the parent graph is a deliberate exception to the normal pattern.
+      for (const edge of affectedEdges) {
+        if (isPseudoInput) {
           edge.target = { node: subgraphNodeId, port: newName };
-          edge.id = `${String(edge.source.node)}_${edge.source.port}__${String(edge.target.node)}_${edge.target.port}`;
-        }
-        if (isPseudoOutput && edge.source.node === subgraphNodeId && edge.source.port === oldName) {
+          edge.id = edgeIdFor(
+            edge.source.node,
+            edge.source.port,
+            edge.target.node,
+            edge.target.port,
+          );
+        } else {
           edge.source = { node: subgraphNodeId, port: newName };
-          edge.id = `${String(edge.source.node)}_${edge.source.port}__${String(edge.target.node)}_${edge.target.port}`;
+          edge.id = edgeIdFor(
+            edge.source.node,
+            edge.source.port,
+            edge.target.node,
+            edge.target.port,
+          );
         }
       }
       editorStore.markDirty();

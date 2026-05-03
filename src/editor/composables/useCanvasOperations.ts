@@ -1,6 +1,10 @@
 import type { Comment, EdgeEndpoint, GraphEdge, GraphNode, Position } from "../../document/types";
 import { defaultRegistry } from "../../registry/registry";
-import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
+import {
+  SUBGRAPH_INPUT_NODE_TYPE,
+  SUBGRAPH_NODE_TYPE,
+  SUBGRAPH_OUTPUT_NODE_TYPE,
+} from "../../document/subgraph";
 import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useHistoryStore } from "../stores/historyStore";
@@ -87,6 +91,51 @@ export const useCanvasOperations = () => {
     });
   };
 
+  // Rename a SubgraphInput or SubgraphOutput pseudo-node port.
+  // In addition to updating parameters.name on the inner node, this patches
+  // all edges at the parent level that reference the old port name on the
+  // enclosing Subgraph node, keeping outer wiring consistent.
+  const renamePseudoPort = (id: number, newName: string): void => {
+    const path = editorStore.currentPath;
+    if (path.length === 0) return; // must be inside a subgraph
+    const node = docStore.nodes.find((n) => n.id === id);
+    if (!node) return;
+    const isPseudoInput = node.type === SUBGRAPH_INPUT_NODE_TYPE;
+    const isPseudoOutput = node.type === SUBGRAPH_OUTPUT_NODE_TYPE;
+    if (!isPseudoInput && !isPseudoOutput) return;
+    const oldName = (node.parameters as { name?: string }).name ?? "";
+    if (oldName === newName) return;
+    const subgraphNodeId = path[path.length - 1]!;
+    history.transact("Rename pseudo-port", () => {
+      // 1. Update the inner node's parameters.name.
+      docStore.updateParameter(id, "name", newName);
+      // 2. Patch outer edges: walk the parent-level graph (one step up in path)
+      //    and rewrite edge endpoints that reference the old port name on the
+      //    enclosing Subgraph node.
+      const parentPath = path.slice(0, -1);
+      let parentGraph = docStore.doc.graph;
+      for (const stepId of parentPath) {
+        const stepNode = parentGraph.nodes.find((n) => n.id === stepId);
+        const childDoc = stepNode
+          ? (stepNode.parameters as { children?: { graph: typeof parentGraph } }).children
+          : undefined;
+        if (!childDoc) return;
+        parentGraph = childDoc.graph;
+      }
+      for (const edge of parentGraph.edges) {
+        if (isPseudoInput && edge.target.node === subgraphNodeId && edge.target.port === oldName) {
+          edge.target = { node: subgraphNodeId, port: newName };
+          edge.id = `${String(edge.source.node)}_${edge.source.port}__${String(edge.target.node)}_${edge.target.port}`;
+        }
+        if (isPseudoOutput && edge.source.node === subgraphNodeId && edge.source.port === oldName) {
+          edge.source = { node: subgraphNodeId, port: newName };
+          edge.id = `${String(edge.source.node)}_${edge.source.port}__${String(edge.target.node)}_${edge.target.port}`;
+        }
+      }
+      editorStore.markDirty();
+    });
+  };
+
   const renameNode = (id: number, name: string | undefined): void => {
     if (docStore.nodes.findIndex((n) => n.id === id) < 0) return;
     history.transact("Rename node", () => {
@@ -148,6 +197,7 @@ export const useCanvasOperations = () => {
     removeEdge,
     removeSelected,
     updateParameter,
+    renamePseudoPort,
     renameNode,
     addCommentAt,
     removeComment,

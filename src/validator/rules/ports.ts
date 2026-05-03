@@ -1,4 +1,5 @@
 import type { Graph, GraphEdge, GraphNode } from "../../document/types";
+import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
 import type { NodeTypeRegistry } from "../../registry/registry";
 import type { NodeTypeDescription, PortDescription } from "../../registry/types";
 import { CODES } from "../codes";
@@ -28,6 +29,8 @@ const eachResolvableEdge = function* (
     const sourceNode = nodesById.get(edge.source.node);
     const targetNode = nodesById.get(edge.target.node);
     if (!sourceNode || !targetNode) continue;
+    // Subgraph nodes have dynamic ports validated by subgraphPorts.ts; skip them here.
+    if (sourceNode.type === SUBGRAPH_NODE_TYPE || targetNode.type === SUBGRAPH_NODE_TYPE) continue;
     const sourceType = registry.get(sourceNode.type);
     const targetType = registry.get(targetNode.type);
     if (!sourceType || !targetType) continue;

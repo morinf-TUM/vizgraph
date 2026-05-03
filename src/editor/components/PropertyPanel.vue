@@ -68,7 +68,7 @@ const onPseudoName = (event: Event): void => {
   const n = selectedNode.value;
   if (!n) return;
   const target = event.target as HTMLInputElement;
-  ops.updateParameter(n.id, "name", target.value);
+  ops.renamePseudoPort(n.id, target.value);
 };
 
 const onPseudoPortType = (event: Event): void => {
@@ -94,8 +94,9 @@ const onPseudoPortType = (event: Event): void => {
       </div>
       <!-- name field for non-pseudo nodes -->
       <div v-if="!isPseudo" class="property-panel__field">
-        <label class="property-panel__label">name</label>
+        <label class="property-panel__label" for="property-name">name</label>
         <input
+          id="property-name"
           class="property-panel__input"
           data-testid="property-name"
           :value="selectedNode.name ?? ''"
@@ -106,8 +107,9 @@ const onPseudoPortType = (event: Event): void => {
       <!-- pseudo-node fields -->
       <template v-if="isPseudo">
         <div class="property-panel__field">
-          <label class="property-panel__label">port name</label>
+          <label class="property-panel__label" for="property-pseudo-name">port name</label>
           <input
+            id="property-pseudo-name"
             class="property-panel__input"
             data-testid="property-pseudo-name"
             :value="pseudoName"
@@ -115,8 +117,9 @@ const onPseudoPortType = (event: Event): void => {
           />
         </div>
         <div class="property-panel__field">
-          <label class="property-panel__label">port type</label>
+          <label class="property-panel__label" for="property-pseudo-port-type">port type</label>
           <input
+            id="property-pseudo-port-type"
             class="property-panel__input"
             data-testid="property-pseudo-port-type"
             :value="pseudoPortType"
@@ -126,8 +129,9 @@ const onPseudoPortType = (event: Event): void => {
       </template>
 
       <div v-if="selectedNode.type === 'Constant'" class="property-panel__field">
-        <label class="property-panel__label">value</label>
+        <label class="property-panel__label" for="property-constant-value">value</label>
         <input
+          id="property-constant-value"
           class="property-panel__input"
           data-testid="property-constant-value"
           type="number"

@@ -110,6 +110,12 @@ const onConnect = (connection: Connection): void => {
 };
 
 const onNodesChange = (changes: NodeChange[]): void => {
+  // Collect node select/deselect changes for batch processing at the end.
+  // Processing them inline (clearSelection on select:false) races with
+  // select:true events in the same batch and wipes multi-select accumulation.
+  const selectedIds: number[] = [];
+  let anyDeselect = false;
+
   for (const change of changes) {
     // VueFlow's NodeAddChange variant has no top-level id; skip it (we
     // create nodes through useCanvasOperations, not through VueFlow's add
@@ -132,10 +138,21 @@ const onNodesChange = (changes: NodeChange[]): void => {
       // property panel); we rely on VueFlow's internal selected flag for
       // visuals. Skip the store update for comment selection events.
       if (isComment) continue;
-      const numericId = Number(id);
-      if (change.selected) editorStore.selectNode(numericId, true);
-      else editorStore.clearSelection();
+      if (change.selected) selectedIds.push(Number(id));
+      else anyDeselect = true;
     }
+  }
+
+  // Apply batched selection: if any nodes became selected, clear first then
+  // add them all (plain click switches selection; Ctrl+click only fires
+  // select:true with no select:false so anyDeselect stays false and we
+  // accumulate additively without clearing).
+  // Only clear when nothing new was selected (click-away / escape).
+  if (selectedIds.length > 0) {
+    if (anyDeselect) editorStore.clearSelection();
+    for (const id of selectedIds) editorStore.selectNode(id, true);
+  } else if (anyDeselect) {
+    editorStore.clearSelection();
   }
 };
 

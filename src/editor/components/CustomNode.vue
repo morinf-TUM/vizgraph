@@ -96,6 +96,7 @@ const formatDuration = (ns: number): string => {
   <div
     v-if="branch === 'regular'"
     class="custom-node"
+    :data-node-type="data.node.type"
     :class="{
       'custom-node--unknown': !desc,
       'custom-node--inspect': overlay,
@@ -148,7 +149,11 @@ const formatDuration = (ns: number): string => {
     </div>
   </div>
 
-  <div v-else-if="branch === 'subgraph'" class="custom-node custom-node--subgraph">
+  <div
+    v-else-if="branch === 'subgraph'"
+    class="custom-node custom-node--subgraph"
+    :data-node-type="data.node.type"
+  >
     <div class="custom-node__header">
       <span class="custom-node__label">{{ subgraphLabel }}</span>
       <span class="custom-node__type">{{ data.node.type }}</span>
@@ -183,7 +188,11 @@ const formatDuration = (ns: number): string => {
     </div>
   </div>
 
-  <div v-else-if="branch === 'subgraphInput'" class="pseudo-node pseudo-node--input">
+  <div
+    v-else-if="branch === 'subgraphInput'"
+    class="pseudo-node pseudo-node--input"
+    :data-node-type="data.node.type"
+  >
     <span class="pseudo-node__glyph">▶</span>
     <span v-if="pseudoName" class="pseudo-node__name">{{ pseudoName }}</span>
     <span v-else class="pseudo-node__name pseudo-node__missing">(unnamed)</span>
@@ -199,7 +208,7 @@ const formatDuration = (ns: number): string => {
     />
   </div>
 
-  <div v-else class="pseudo-node pseudo-node--output">
+  <div v-else class="pseudo-node pseudo-node--output" :data-node-type="data.node.type">
     <Handle
       v-if="pseudoName"
       :id="pseudoName"

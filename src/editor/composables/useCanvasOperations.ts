@@ -5,6 +5,7 @@ import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useHistoryStore } from "../stores/historyStore";
 import { canConnect, type ConnectCheck } from "../canConnect";
+import { groupSelection as groupSelectionImpl } from "./groupSelection";
 
 // Bridge layer between the canvas/UI and the document/editor stores. Every
 // mutation routed through here flips the dirty flag and is wrapped in a
@@ -135,6 +136,9 @@ export const useCanvasOperations = () => {
     editorStore.exitSubgraph();
   };
 
+  const groupSelection = (): GraphNode | undefined =>
+    groupSelectionImpl(docStore, editorStore, history);
+
   return {
     addNodeAt,
     removeNode,
@@ -151,5 +155,6 @@ export const useCanvasOperations = () => {
     editCommentText,
     enterSubgraph,
     exitToParent,
+    groupSelection,
   };
 };

@@ -8,6 +8,7 @@ export const useEditorStore = defineStore("editor", () => {
   const selectedNodeIds = ref<Set<number>>(new Set());
   const selectedEdgeIds = ref<Set<string>>(new Set());
   const viewport = ref<Viewport>({ ...DEFAULT_VIEWPORT });
+  const currentPath = ref<number[]>([]);
   const dirty = ref(false);
   // Set by CanvasView once VueFlow has mounted; called by useShortcuts to
   // implement the F (fit-view) binding without coupling the global keyboard
@@ -17,6 +18,19 @@ export const useEditorStore = defineStore("editor", () => {
   const hasSelection = computed(
     () => selectedNodeIds.value.size > 0 || selectedEdgeIds.value.size > 0,
   );
+  const isAtRoot = computed(() => currentPath.value.length === 0);
+
+  const enterSubgraph = (subgraphId: number): void => {
+    currentPath.value = [...currentPath.value, subgraphId];
+  };
+  const exitSubgraph = (): boolean => {
+    if (currentPath.value.length === 0) return false;
+    currentPath.value = currentPath.value.slice(0, -1);
+    return true;
+  };
+  const setCurrentPath = (path: number[]): void => {
+    currentPath.value = [...path];
+  };
 
   const selectNode = (id: number, additive = false): void => {
     if (!additive) {
@@ -79,9 +93,11 @@ export const useEditorStore = defineStore("editor", () => {
     selectedNodeIds,
     selectedEdgeIds,
     viewport,
+    currentPath,
     dirty,
     fitViewFn,
     hasSelection,
+    isAtRoot,
     selectNode,
     selectEdge,
     toggleNodeSelection,
@@ -91,5 +107,8 @@ export const useEditorStore = defineStore("editor", () => {
     markClean,
     setFitViewFn,
     fitView,
+    enterSubgraph,
+    exitSubgraph,
+    setCurrentPath,
   };
 });

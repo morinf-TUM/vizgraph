@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { defaultRegistry } from "../../registry/registry";
 import { useCanvasOperations } from "../composables/useCanvasOperations";
+import { PALETTE_DRAG_MIME } from "../paletteDragMime";
 
 const registry = defaultRegistry();
 const ops = useCanvasOperations();
@@ -36,6 +37,12 @@ const groups = computed<Group[]>(() => {
 const onAdd = (type: string): void => {
   ops.addNodeAt(type, { x: 60, y: 60 });
 };
+
+const onDragStart = (event: DragEvent, type: string): void => {
+  if (!event.dataTransfer) return;
+  event.dataTransfer.setData(PALETTE_DRAG_MIME, type);
+  event.dataTransfer.effectAllowed = "copy";
+};
 </script>
 
 <template>
@@ -57,7 +64,9 @@ const onAdd = (type: string): void => {
         type="button"
         class="palette__item"
         :data-testid="`palette-${item.type}`"
+        draggable="true"
         @click="onAdd(item.type)"
+        @dragstart="onDragStart($event, item.type)"
       >
         {{ item.display_name }}
       </button>

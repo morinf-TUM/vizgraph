@@ -28,6 +28,32 @@ test("clicking a palette item adds a node and the property panel reflects select
   await expect(page.getByText("unsaved")).toBeVisible();
 });
 
+test("drag-to-add: dragging a palette item onto the canvas adds a node at the cursor", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator(".vue-flow__node-custom")).toHaveCount(0);
+
+  // Native HTML5 DnD in Playwright: share a DataTransfer handle across the
+  // dragstart and drop events so the source and target see the same payload.
+  // (Locator.dragTo synthesises pointer events, which the browser does not
+  // upgrade to dragstart/drop for HTML5 DnD.)
+  const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+  await page.getByTestId("palette-Constant").dispatchEvent("dragstart", { dataTransfer });
+
+  const canvas = page.getByTestId("canvas-root");
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("canvas-root has no bounding box");
+  const clientX = box.x + box.width / 2;
+  const clientY = box.y + box.height / 2;
+  await canvas.dispatchEvent("dragover", { dataTransfer, clientX, clientY });
+  await canvas.dispatchEvent("drop", { dataTransfer, clientX, clientY });
+
+  await expect(page.locator(".vue-flow__node-custom")).toHaveCount(1);
+  // Dirty indicator surfaces because addNodeAt flips the dirty flag.
+  await expect(page.getByText("unsaved")).toBeVisible();
+});
+
 test("Save button triggers a download with the current document JSON", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("palette-Constant").click();

@@ -18,6 +18,7 @@ import { useDocumentStore } from "../stores/documentStore";
 import { useEditorStore } from "../stores/editorStore";
 import { useCanvasOperations } from "../composables/useCanvasOperations";
 import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
+import { PALETTE_DRAG_MIME } from "../paletteDragMime";
 import CustomNode from "./CustomNode.vue";
 import CommentNode from "./CommentNode.vue";
 
@@ -28,6 +29,7 @@ const {
   zoomIn,
   zoomOut,
   setInteractive,
+  screenToFlowCoordinate,
   nodesDraggable,
   nodesConnectable,
   elementsSelectable,
@@ -163,6 +165,24 @@ const onNodeDoubleClick = ({ node }: NodeMouseEvent): void => {
   ops.enterSubgraph(Number(node.id));
 };
 
+// Drag-to-add palette: Palette.vue marks each entry draggable and stuffs the
+// node type in dataTransfer under PALETTE_DRAG_MIME. We accept the drop here
+// and place the new node at the cursor's flow-space coordinate.
+const onDragOver = (event: DragEvent): void => {
+  if (!event.dataTransfer) return;
+  if (!event.dataTransfer.types.includes(PALETTE_DRAG_MIME)) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+};
+
+const onDrop = (event: DragEvent): void => {
+  const type = event.dataTransfer?.getData(PALETTE_DRAG_MIME);
+  if (!type) return;
+  event.preventDefault();
+  const position = screenToFlowCoordinate({ x: event.clientX, y: event.clientY });
+  ops.addNodeAt(type, position);
+};
+
 const onEdgesChange = (changes: EdgeChange[]): void => {
   for (const change of changes) {
     if (change.type === "remove") {
@@ -176,7 +196,7 @@ const onEdgesChange = (changes: EdgeChange[]): void => {
 </script>
 
 <template>
-  <div class="canvas-root" data-testid="canvas-root">
+  <div class="canvas-root" data-testid="canvas-root" @dragover="onDragOver" @drop="onDrop">
     <VueFlow
       :nodes="flowNodes"
       :edges="flowEdges"

@@ -19,7 +19,9 @@ all exit 0.
 
 See `PROJECT_MEMORY.md` for the canonical architecture state, `PLAN.md`
 for the per-phase + backlog checklist, `CHANGELOG.md` for per-milestone
-detail, and `SMOKE_TEST.md` for a human end-to-end walkthrough.
+detail, `SMOKE_TEST.md` for a human end-to-end walkthrough, and
+`FORMATS.md` for the precise wire-format contract that external
+producers / consumers should target.
 
 ## Features
 
@@ -133,6 +135,7 @@ runtime is deferred — register before mount.
 ├── PLAN.md                                  active checklist (phases + backlog)
 ├── CHANGELOG.md                             per-phase + per-milestone summary
 ├── SMOKE_TEST.md                            human end-to-end walkthrough
+├── FORMATS.md                               wire-format contract for external integrators
 ├── LICENSE                                  Apache-2.0
 ├── bin/
 │   └── vizgraph.mjs                         CLI shim
@@ -165,7 +168,8 @@ runtime is deferred — register before mount.
 3. `docs/specs/2026-05-01-n8n-port-editor-design.md`
 4. ADRs as needed (`docs/decisions/0001`…`0007`)
 5. `SMOKE_TEST.md` for the human-visible feature set
-6. Source
+6. `FORMATS.md` for the wire-format contract
+7. Source
 
 ## License
 

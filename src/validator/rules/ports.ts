@@ -1,7 +1,7 @@
 import type { Graph, GraphEdge, GraphNode } from "../../document/types";
-import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
 import type { NodeTypeRegistry } from "../../registry/registry";
 import type { NodeTypeDescription, PortDescription } from "../../registry/types";
+import { SUBGRAPH_NODE_TYPE } from "../../document/subgraph";
 import { CODES } from "../codes";
 import { error, type Diagnostic } from "../diagnostics";
 

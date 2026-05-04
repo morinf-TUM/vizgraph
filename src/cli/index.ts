@@ -138,7 +138,7 @@ const cmdRoundtrip = (opts: { file: string; pretty: boolean }, streams: CliStrea
   return 0;
 };
 
-const HELP = `vizgraph - n8n-port headless CLI
+const HELP = `vizgraph - headless CLI
 
 Usage:
   vizgraph validate <file.json> [--json] [--warnings-as-errors]

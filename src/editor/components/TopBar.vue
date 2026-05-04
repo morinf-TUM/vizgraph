@@ -123,7 +123,7 @@ const showTickControls = computed(() => execution.tickCount > 1);
 <template>
   <div class="top-bar" data-testid="top-bar">
     <div class="top-bar__left">
-      <strong>n8n-port</strong>
+      <strong>vizgraph</strong>
       <span v-if="editorStore.dirty" class="top-bar__dirty">unsaved</span>
       <span
         class="top-bar__mode"

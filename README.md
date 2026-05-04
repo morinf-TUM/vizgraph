@@ -1,6 +1,6 @@
-# n8n-port
+# vizgraph
 
-A web-based graph editor for an external C++ DAG runtime, adapted from n8n's editor patterns. The runtime is **not** in this repository — see `docs/decisions/0001-editor-only-no-cpp-runtime.md`.
+A web-based graph editor for an external C++ DAG runtime, with UX patterns inspired by n8n's editor. The runtime is **not** in this repository — see `docs/decisions/0001-editor-only-no-cpp-runtime.md`.
 
 ## Status
 
@@ -97,4 +97,13 @@ runtime is deferred — register before mount.
 
 ## License
 
-TBD (will be set before any external publication). n8n is referenced only as inspiration; no n8n source files are vendored. See ADR-0001 for the editor-only posture.
+Licensed under the Apache License, Version 2.0. See [`LICENSE`](LICENSE) for
+the full text.
+
+This project is an independent reimplementation: no n8n source code is
+copied or vendored — only the editor's UX patterns and conventions are
+referenced as design inspiration, with attribution in `docs/specs/` and
+`docs/decisions/`. "n8n" is a trademark of n8n GmbH; this project is not
+affiliated with or endorsed by n8n GmbH.
+
+

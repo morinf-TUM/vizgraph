@@ -14,9 +14,11 @@ The editor is informed by n8n's editor-ui (Vue 3 + Vue Flow + Pinia + Vite + Ele
 
 **Backlog progress (2026-05-02, all merged to `master` and pushed to `origin`):** ✅ Headless CLI · ✅ Plugin / external node-type registration · ✅ Code-splitting + Element Plus eager-load removed (initial gzip 417 KB → ~17 KB) · ✅ Ctrl+S / Ctrl+O / F shortcuts · ✅ Comments / annotations · ✅ Dark theme + a11y audit (n8n-style coral, primitive+semantic two-layer tokens in `src/styles/theme.css`, `[data-theme="dark"], :root` future-proofing for additional themes, `docs/theming.md` semantic-token contract, axe e2e gate via `@axe-core/playwright`) · ✅ Sub-graphs / grouping (recursive encapsulation, drill-in UX, flatten-at-compile, ADR-0007).
 
-**Resumption point:** All backlog items shipped. Next session has no queued work.
+**Backlog progress (2026-05-04, on local `master`, not yet pushed):** ✅ sub-graphs review nits — `style(validator)` types-first ordering in `ports.ts`, `test(e2e)` blur the pseudo-name input before `toHaveValue` so the assertion exercises the change handler. (One latent review item — splitting the CanvasView selection-batching fix out of `48e50f6` into its own commit — was deliberately skipped because doing it now would require destructive history rewriting on shared `master`; the fix itself is in place at `src/editor/components/CanvasView.vue` lines 112–157 and well-commented.) ✅ Drag-to-add palette UX — palette items are HTML5-draggable, `CanvasView` accepts the drop and uses `useVueFlow().screenToFlowCoordinate` to compute the placement; click-to-add is unchanged. ✅ Anchored comments — `Comment.attachedTo?: { node?, edge? }` (additive, no schema-version bump); anchored comments shift by the same delta on `moveNode` and auto-detach (don't delete) on `removeNode`; `PropertyPanel` grows a "+ comment attached to this node" affordance.
 
-Repo HEAD is `master` at `09aefba` (merge of `feat/subgraphs`, tag `subgraphs-complete`) with all four phase tags + 7 backlog commits pushed. 47 Vitest files / 293 tests + 10 Playwright cases all green. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
+**Resumption point:** All shipped backlog items either pushed (8 items through 2026-05-02) or sitting on local `master` ahead of `origin/master` (4 commits from 2026-05-04, awaiting user-authorised push). Next session has no queued work.
+
+Repo HEAD is `master` at `9b85a33` (local, 4 commits ahead of `origin/master`'s `6573fe0`). 47 Vitest files / 297 tests + 12 Playwright cases all green. Working tree clean. `pnpm test/lint/typecheck/format:check/build/e2e` all exit 0.
 
 ## Tech stack (locked Phase 0)
 

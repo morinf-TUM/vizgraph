@@ -4,6 +4,56 @@ All notable changes are recorded here at every phase boundary or significant mil
 
 ## [Unreleased]
 
+### Added: Drag-to-add palette UX (2026-05-04)
+- Each palette entry is now `draggable="true"`; on `dragstart` the handler
+  stuffs the node type into `dataTransfer` under
+  `application/x-vizgraph-node-type` (constant in
+  `src/editor/paletteDragMime.ts`).
+- `CanvasView.vue` accepts the drop on `.canvas-root` (`@dragover.prevent`
+  + `@drop`) and converts client coordinates via
+  `useVueFlow().screenToFlowCoordinate` before calling
+  `useCanvasOperations.addNodeAt`. Click-to-add is unchanged.
+- The Phase-2 deferred entry from `PLAN.md` is now closed.
+- New Playwright case uses the shared-DataTransfer pattern (locator
+  `dragTo` synthesises pointer events that the browser does not upgrade
+  to dragstart/drop for HTML5 DnD).
+- Total gates: 47 Vitest files / 297 cases + 12 Playwright cases.
+
+### Added: Anchored comments (2026-05-04)
+- `Comment` schema gains an optional
+  `attachedTo: { node?: int, edge?: string }` field — additive, no
+  schema-version bump. Existing v1 documents without it still parse and
+  the compiler already drops comments, so the runtime payload is
+  unchanged.
+- `documentStore.moveNode` now shifts attached comments by the same
+  delta so their relative offset is preserved through node moves and
+  Tidy. `documentStore.removeNode` auto-detaches anchored comments
+  rather than deleting them, so the user's annotation survives as a
+  free-floating note when its anchor goes away.
+- `useCanvasOperations.addCommentAttachedToNode(nodeId, text?)` and
+  `detachComment(id)` wrap the new mutations in `history.transact`.
+- `PropertyPanel.vue` grows a "+ comment attached to this node" button
+  visible whenever a node is selected.
+- Closes the "attached annotations could be a follow-up" line from the
+  2026-05-02 comments entry.
+
+### Changed: Sub-graphs review nits (2026-05-04)
+- `style(validator):` re-ordered `src/validator/rules/ports.ts` so the
+  `SUBGRAPH_NODE_TYPE` value import follows the type-only imports
+  instead of being sandwiched between them.
+- `test(e2e):` Phase 5 of `tests/e2e/subgraph.spec.ts` now follows
+  `getByTestId("property-pseudo-name").fill("alpha")` with an explicit
+  `.blur()` so the `toHaveValue` assertion exercises the change handler
+  (the renamePseudoPort commit settling and Vue re-rendering the
+  `:value` binding from the store) rather than reading the literal
+  value Playwright just typed.
+- The third review item — splitting the CanvasView selection-batching
+  fix out of `48e50f6` into its own commit — was deliberately skipped:
+  the fix is already merged on `master` and is well-commented at
+  `src/editor/components/CanvasView.vue` lines 112–157, and splitting
+  it now would require destructive history rewriting on shared
+  `master`.
+
 ### Added: Sub-graphs / grouping (2026-05-02)
 - Sub-graphs / grouping: recursive encapsulation with typed port surface,
   drill-in canvas with breadcrumbs, current-level RunResult overlays.

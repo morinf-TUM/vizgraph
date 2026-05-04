@@ -103,3 +103,6 @@ Prerequisite: upgrade Node to 22 LTS on dev machine; `corepack enable && corepac
 - [x] Comments / annotations on the canvas. *(2026-05-02 — free-floating notes; attached annotations could be a follow-up.)*
 - [x] Theming (n8n-style dark theme, accessibility audit). *(2026-05-02 — see CHANGELOG.)*
 - [x] Sub-graphs / grouping. *(2026-05-02 — see CHANGELOG.)*
+- [x] Drag-to-add palette UX. *(2026-05-04 — finishes the Phase-2-deferred drag-source path; click-to-add unchanged.)*
+- [x] Anchored / attached comments. *(2026-05-04 — `Comment.attachedTo?: { node?, edge? }`; follow-on from the 2026-05-02 free-floating comments line.)*
+- [x] Sub-graphs review nits (ports.ts import order, e2e blur). *(2026-05-04 — third review item, splitting the CanvasView selection-batching fix into its own commit, deliberately skipped: the fix is already merged inside `48e50f6` and splitting it now would need destructive history rewriting on shared `master`.)*

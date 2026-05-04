@@ -72,6 +72,11 @@ test("group selection -> drill in -> rename pseudo-port -> save -> compile via C
   // Wait for PropertyPanel to render the pseudo input (selectedNode.size === 1 path).
   await expect(page.getByTestId("property-pseudo-name")).toBeVisible();
   await page.getByTestId("property-pseudo-name").fill("alpha");
+  // Blur after fill so the @input handler's renamePseudoPort commit reaches the
+  // store and Vue re-renders the :value binding from the store, not just from
+  // the literal value Playwright typed. Without this, toHaveValue could pass on
+  // the typed-but-not-yet-overridden DOM value and never exercise the handler.
+  await page.getByTestId("property-pseudo-name").blur();
   await expect(page.getByTestId("property-pseudo-name")).toHaveValue("alpha");
 
   // Phase 6 — Drill out via Breadcrumbs Root.

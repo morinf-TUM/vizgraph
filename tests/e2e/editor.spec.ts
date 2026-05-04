@@ -112,6 +112,36 @@ test("Comment button adds a comment to the canvas and persists it on save", asyn
   expect(parsed.graph.comments[0]?.text).toBe("New comment");
 });
 
+test("PropertyPanel + comment button creates a comment anchored to the selected node", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("palette-Constant").click();
+  await page.locator(".vue-flow__node-custom").first().click();
+  await expect(page.getByTestId("property-attach-comment")).toBeVisible();
+  await page.getByTestId("property-attach-comment").click();
+
+  // Comment appears on the canvas.
+  await expect(page.locator(".vue-flow__node-comment")).toHaveCount(1);
+
+  // attachedTo round-trips through the saved JSON.
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByTestId("topbar-save").click();
+  const download = await downloadPromise;
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(chunk as Buffer);
+  const parsed = JSON.parse(Buffer.concat(chunks).toString("utf8")) as {
+    graph: {
+      nodes: Array<{ id: number }>;
+      comments: Array<{ id: string; attachedTo?: { node?: number } }>;
+    };
+  };
+  expect(parsed.graph.comments).toHaveLength(1);
+  const nodeId = parsed.graph.nodes[0]?.id;
+  expect(parsed.graph.comments[0]?.attachedTo).toEqual({ node: nodeId });
+});
+
 test("Ctrl+S keyboard shortcut triggers a download", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("palette-Constant").click();

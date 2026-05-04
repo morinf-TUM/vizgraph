@@ -77,6 +77,12 @@ const onPseudoPortType = (event: Event): void => {
   const target = event.target as HTMLInputElement;
   ops.updateParameter(n.id, "portType", target.value);
 };
+
+const onAttachComment = (): void => {
+  const n = selectedNode.value;
+  if (!n) return;
+  ops.addCommentAttachedToNode(n.id);
+};
 </script>
 
 <template>
@@ -143,6 +149,14 @@ const onPseudoPortType = (event: Event): void => {
       <div v-if="!selectedDesc" class="property-panel__warning">
         Unknown node type — properties not editable.
       </div>
+      <button
+        type="button"
+        class="property-panel__action"
+        data-testid="property-attach-comment"
+        @click="onAttachComment"
+      >
+        + comment attached to this node
+      </button>
     </div>
   </div>
 </template>
@@ -189,5 +203,23 @@ const onPseudoPortType = (event: Event): void => {
   border-radius: 4px;
   background: var(--vg-surface-2);
   color: var(--vg-text);
+}
+.property-panel__action {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 6px 10px;
+  font-size: 11px;
+  text-align: left;
+  border: 1px dashed var(--vg-border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--vg-text-muted);
+  cursor: pointer;
+}
+.property-panel__action:hover {
+  background: var(--vg-surface-2);
+  color: var(--vg-text);
+  border-color: var(--vg-accent);
 }
 </style>

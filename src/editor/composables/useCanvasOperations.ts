@@ -175,6 +175,28 @@ export const useCanvasOperations = () => {
       return c;
     });
 
+  // Anchor a new comment to a node so node moves drag the comment along.
+  // The comment is offset from the node's top-right so it's visible without
+  // overlapping the body of the node.
+  const addCommentAttachedToNode = (nodeId: number, text = "New comment"): Comment | undefined => {
+    const node = docStore.nodes.find((n) => n.id === nodeId);
+    if (!node) return undefined;
+    const position: Position = { x: node.position.x + 40, y: node.position.y - 60 };
+    return history.transact("Add attached comment", () => {
+      const c = docStore.addComment({ text, position, attachedTo: { node: nodeId } });
+      editorStore.markDirty();
+      return c;
+    });
+  };
+
+  const detachComment = (id: string): void => {
+    if (docStore.comments.findIndex((c) => c.id === id) < 0) return;
+    history.transact("Detach comment", () => {
+      docStore.detachComment(id);
+      editorStore.markDirty();
+    });
+  };
+
   const removeComment = (id: string): void => {
     if (docStore.comments.findIndex((c) => c.id === id) < 0) return;
     history.transact(`Remove comment ${id}`, () => {
@@ -224,9 +246,11 @@ export const useCanvasOperations = () => {
     renamePseudoPort,
     renameNode,
     addCommentAt,
+    addCommentAttachedToNode,
     removeComment,
     moveComment,
     editCommentText,
+    detachComment,
     enterSubgraph,
     exitToParent,
     groupSelection,

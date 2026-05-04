@@ -36,6 +36,14 @@ export const ViewportSchema = z.object({
 });
 export type Viewport = z.infer<typeof ViewportSchema>;
 
+export const CommentAttachmentSchema = z.object({
+  // At most one of node/edge is set — schema permits both being unset (the
+  // empty-attachment shape) but the editor only ever writes one or the other.
+  node: z.number().int().optional(),
+  edge: z.string().optional(),
+});
+export type CommentAttachment = z.infer<typeof CommentAttachmentSchema>;
+
 export const CommentSchema = z.object({
   id: z.string(),
   text: z.string(),
@@ -47,6 +55,9 @@ export const CommentSchema = z.object({
     })
     .optional(),
   color: z.string().optional(),
+  // When set, the comment is anchored to a node or edge: it follows node moves
+  // and is auto-detached if its anchor is removed. Absent => free-floating.
+  attachedTo: CommentAttachmentSchema.optional(),
 });
 export type Comment = z.infer<typeof CommentSchema>;
 

@@ -185,6 +185,61 @@ describe("documentStore", () => {
     expect(store.comments).toHaveLength(1);
   });
 
+  describe("anchored comments", () => {
+    it("addComment persists the attachedTo field when provided", () => {
+      const store = useDocumentStore();
+      const node = store.addNode({ type: "Constant", position: { x: 0, y: 0 } });
+      const c = store.addComment({
+        text: "anchored",
+        position: { x: 10, y: 10 },
+        attachedTo: { node: node.id },
+      });
+      expect(c.attachedTo).toEqual({ node: node.id });
+    });
+
+    it("moveNode shifts attached comments by the same delta", () => {
+      const store = useDocumentStore();
+      const node = store.addNode({ type: "Constant", position: { x: 100, y: 100 } });
+      store.addComment({
+        text: "follows",
+        position: { x: 140, y: 40 },
+        attachedTo: { node: node.id },
+      });
+      store.addComment({ text: "free", position: { x: 0, y: 0 } });
+      store.moveNode(node.id, { x: 250, y: 180 });
+      // Anchored comment shifted by +150,+80; free-floating one unchanged.
+      expect(store.comments[0]?.position).toEqual({ x: 290, y: 120 });
+      expect(store.comments[1]?.position).toEqual({ x: 0, y: 0 });
+    });
+
+    it("removeNode detaches anchored comments without deleting them", () => {
+      const store = useDocumentStore();
+      const node = store.addNode({ type: "Constant", position: { x: 0, y: 0 } });
+      store.addComment({
+        text: "anchored",
+        position: { x: 10, y: 10 },
+        attachedTo: { node: node.id },
+      });
+      store.removeNode(node.id);
+      expect(store.comments).toHaveLength(1);
+      expect(store.comments[0]?.attachedTo).toBeUndefined();
+      expect(store.comments[0]?.text).toBe("anchored");
+    });
+
+    it("detachComment clears attachedTo without otherwise touching the comment", () => {
+      const store = useDocumentStore();
+      const node = store.addNode({ type: "Constant", position: { x: 0, y: 0 } });
+      const c = store.addComment({
+        text: "x",
+        position: { x: 10, y: 10 },
+        attachedTo: { node: node.id },
+      });
+      store.detachComment(c.id);
+      expect(store.comments[0]?.attachedTo).toBeUndefined();
+      expect(store.comments[0]?.position).toEqual({ x: 10, y: 10 });
+    });
+  });
+
   describe("path-aware mutations (currentPath != [])", () => {
     const docWithEmptySubgraph = (subgraphId: number): GraphDocument => ({
       version: 1,

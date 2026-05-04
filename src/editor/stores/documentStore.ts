@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import {
   type Comment,
+  type CommentAttachment,
   type EdgeEndpoint,
   type Graph,
   type GraphDocument,
@@ -53,6 +54,7 @@ export interface AddCommentInput {
   position: Position;
   size?: { width: number; height: number };
   color?: string;
+  attachedTo?: CommentAttachment;
 }
 
 export const useDocumentStore = defineStore("document", () => {
@@ -97,6 +99,12 @@ export const useDocumentStore = defineStore("document", () => {
     // would flag them, but we prefer to keep the in-memory document
     // structurally clean.
     graph.edges = graph.edges.filter((e) => e.source.node !== id && e.target.node !== id);
+    // Detach (don't delete) any comment anchored to the removed node so the
+    // user's annotation survives as a free-floating note rather than getting
+    // silently dropped.
+    for (const comment of graph.comments) {
+      if (comment.attachedTo?.node === id) delete comment.attachedTo;
+    }
   };
 
   const moveNode = (id: number, position: Position): void => {
@@ -104,7 +112,19 @@ export const useDocumentStore = defineStore("document", () => {
     if (idx < 0) return;
     const node = currentLevelGraph.value.nodes[idx];
     if (!node) return;
+    const dx = position.x - node.position.x;
+    const dy = position.y - node.position.y;
     node.position = position;
+    // Anchored comments follow the node by the same delta so their relative
+    // offset is preserved. Repositioning the comment manually (moveComment)
+    // changes that offset; only node moves shift attached comments.
+    if (dx !== 0 || dy !== 0) {
+      for (const comment of currentLevelGraph.value.comments) {
+        if (comment.attachedTo?.node === id) {
+          comment.position = { x: comment.position.x + dx, y: comment.position.y + dy };
+        }
+      }
+    }
   };
 
   const renameNode = (id: number, name: string | undefined): void => {
@@ -176,6 +196,7 @@ export const useDocumentStore = defineStore("document", () => {
       position: input.position,
       ...(input.size !== undefined ? { size: input.size } : {}),
       ...(input.color !== undefined ? { color: input.color } : {}),
+      ...(input.attachedTo !== undefined ? { attachedTo: { ...input.attachedTo } } : {}),
     };
     graph.comments.push(comment);
     return comment;
@@ -204,6 +225,15 @@ export const useDocumentStore = defineStore("document", () => {
     if (patch.position !== undefined) comment.position = patch.position;
     if (patch.size !== undefined) comment.size = patch.size;
     if (patch.color !== undefined) comment.color = patch.color;
+    if (patch.attachedTo !== undefined) comment.attachedTo = { ...patch.attachedTo };
+  };
+
+  const detachComment = (id: string): void => {
+    const idx = findCommentIndex(id);
+    if (idx < 0) return;
+    const comment = currentLevelGraph.value.comments[idx];
+    if (!comment) return;
+    delete comment.attachedTo;
   };
 
   const replaceDocument = (next: GraphDocument): void => {
@@ -234,6 +264,7 @@ export const useDocumentStore = defineStore("document", () => {
     removeComment,
     moveComment,
     updateComment,
+    detachComment,
     replaceDocument,
     newDocument,
   };

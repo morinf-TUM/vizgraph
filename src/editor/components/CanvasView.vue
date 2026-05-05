@@ -6,8 +6,10 @@ import {
   type Connection,
   type EdgeChange,
   type NodeChange,
+  type NodeDragEvent,
   type NodeMouseEvent,
 } from "@vue-flow/core";
+import type { Position } from "../../document/types";
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
 import { Background } from "@vue-flow/background";
@@ -127,6 +129,10 @@ const onNodesChange = (changes: NodeChange[]): void => {
     const isComment = typeof id === "string" && id.startsWith(COMMENT_PREFIX);
     const commentId = isComment ? id.slice(COMMENT_PREFIX.length) : undefined;
     if (change.type === "position" && change.position && !change.dragging) {
+      // Arrow-key nudges (useUpdateNodePositions) emit changed=true,
+      // dragging=false with a populated position. Drag gestures do not flow
+      // through here — VueFlow's drag-stop emit has changed=false (no
+      // position), so drags are committed via @node-drag-stop instead.
       if (commentId !== undefined) {
         ops.moveComment(commentId, { x: change.position.x, y: change.position.y });
       } else {
@@ -156,6 +162,27 @@ const onNodesChange = (changes: NodeChange[]): void => {
   } else if (anyDeselect) {
     editorStore.clearSelection();
   }
+};
+
+// VueFlow's `nodes-change` `position` event has its `position` field set on
+// every in-flight drag frame (dragging=true) and unset on the final dragstop
+// (changed=false). Filtering for `!dragging` therefore never matches a drag
+// commit, so we listen to `node-drag-stop` to commit final positions. The
+// payload's `nodes` array is the full set of nodes that moved together (the
+// primary plus any co-selected nodes), so a multi-select drag undoes as one
+// step via commitDrag's single transact.
+const onNodeDragStop = ({ nodes }: NodeDragEvent): void => {
+  const nodeMoves: { id: number; position: Position }[] = [];
+  const commentMoves: { id: string; position: Position }[] = [];
+  for (const n of nodes) {
+    const pos: Position = { x: n.position.x, y: n.position.y };
+    if (n.id.startsWith(COMMENT_PREFIX)) {
+      commentMoves.push({ id: n.id.slice(COMMENT_PREFIX.length), position: pos });
+    } else {
+      nodeMoves.push({ id: Number(n.id), position: pos });
+    }
+  }
+  ops.commitDrag(nodeMoves, commentMoves);
 };
 
 const onNodeDoubleClick = ({ node }: NodeMouseEvent): void => {
@@ -205,6 +232,7 @@ const onEdgesChange = (changes: EdgeChange[]): void => {
       @connect="onConnect"
       @nodes-change="onNodesChange"
       @edges-change="onEdgesChange"
+      @node-drag-stop="onNodeDragStop"
       @node-double-click="onNodeDoubleClick"
     >
       <template #node-custom="props">

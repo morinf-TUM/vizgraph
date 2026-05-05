@@ -54,6 +54,28 @@ export const useCanvasOperations = () => {
     });
   };
 
+  // Commits the final positions of a drag gesture in a single history
+  // transaction so multi-select drags undo as one step. VueFlow only emits
+  // a usable position on drag-end via @node-drag-stop (its `position` field
+  // on `nodes-change` is unset on dragstop and set during in-flight frames),
+  // so this is the entry point the canvas funnels drag commits through.
+  const commitDrag = (
+    nodeMoves: ReadonlyArray<{ id: number; position: Position }>,
+    commentMoves: ReadonlyArray<{ id: string; position: Position }>,
+  ): void => {
+    const nodeIds = new Set(docStore.nodes.map((n) => n.id));
+    const commentIds = new Set(docStore.comments.map((c) => c.id));
+    const nodes = nodeMoves.filter((m) => nodeIds.has(m.id));
+    const comments = commentMoves.filter((m) => commentIds.has(m.id));
+    const total = nodes.length + comments.length;
+    if (total === 0) return;
+    history.transact(total === 1 ? "Move" : `Move ${String(total)} items`, () => {
+      for (const m of nodes) docStore.moveNode(m.id, m.position);
+      for (const m of comments) docStore.moveComment(m.id, m.position);
+      editorStore.markDirty();
+    });
+  };
+
   const connect = (source: EdgeEndpoint, target: EdgeEndpoint): GraphEdge | undefined => {
     const check = canConnect(docStore.doc, registry, source, target);
     if (!check.ok) return undefined;
@@ -238,6 +260,7 @@ export const useCanvasOperations = () => {
     addNodeAt,
     removeNode,
     moveNode,
+    commitDrag,
     connect,
     checkConnection,
     removeEdge,
